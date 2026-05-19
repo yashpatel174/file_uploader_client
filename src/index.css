@@ -1,0 +1,19 @@
+.custom-table .ant-table-thead > tr > th {
+  background-color: #8995fc;
+  color: #fff;
+  font-weight: 600;
+  text-align: center;
+}
+
+.custom-table .ant-table-tbody > tr:nth-child(even) > td {
+  background-color: #f1fcff;
+}
+
+.custom-table .ant-table-tbody > tr:nth-child(odd) > td {
+  background-color: #ffffff;
+}
+
+.custom-table .ant-table-tbody > tr > td:first-child,
+.custom-table .ant-table-tbody > tr > td:nth-child(2) {
+  font-weight: 600;
+}
