@@ -1,0 +1,70 @@
+import type {
+  IBaseOperation,
+  IEditData,
+  IFormattedUsage,
+  IUserUsage,
+  UnitType,
+} from "../interfaces/interface";
+import { formatBytes, slotOperation, toBytes } from "./sizeConverter";
+import { formatDuration, parseDurationToSeconds } from "./timeConverter";
+
+export const dynamicData = (
+  user: IUserUsage,
+  dataUnit: UnitType,
+): IFormattedUsage => {
+  const total = Number(user[dataUnit].total);
+  const consumed = Number(user[dataUnit].consumed);
+  const available = Number(user[dataUnit].available);
+
+  if (dataUnit === "size") {
+    return {
+      total: formatBytes(total),
+      consumed: formatBytes(consumed),
+      available: formatBytes(available),
+    };
+  }
+
+  return {
+    total: formatDuration(total),
+    consumed: formatDuration(consumed),
+    available: formatDuration(available),
+  };
+};
+
+export const buildPayload = (values, userInfo): IEditData => {
+  const { unit, opearation } = values;
+  const isSize = unit === "size";
+
+  const incomingValue = isSize
+    ? toBytes(values.newSize, values.newUnit)
+    : parseDurationToSeconds(values.newTime).totalSeconds;
+
+  const config: IBaseOperation = {
+    available: Number(userInfo[unit].available) || 0,
+    total: Number(userInfo[unit].total) || 0,
+    consumed: Number(userInfo[unit].consumed) || 0,
+    incomingValue,
+    availableError: isSize
+      ? "New value must be lesser than available size"
+      : "Time exceeds the allowed time limitation",
+  };
+
+  if (opearation === "-") {
+    if (config.incomingValue > config.available) {
+      throw new Error(config.availableError);
+    }
+  }
+
+  const { newTotalBytes } = slotOperation({
+    totalBytes: config.total,
+    consumedBytes: config.consumed,
+    newValueBytes: config.incomingValue,
+    operation: opearation,
+  });
+
+  return {
+    unit,
+    userId: userInfo._id,
+    newValue: newTotalBytes,
+  };
+};

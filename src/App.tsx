@@ -1,9 +1,10 @@
-import Index from "./modules/Index";
+import { RouterProvider } from "react-router-dom";
+import { router } from "./routes/router";
 
 function App() {
   return (
     <>
-      <Index />
+      <RouterProvider router={router} />
     </>
   );
 }

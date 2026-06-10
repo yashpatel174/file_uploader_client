@@ -17,3 +17,29 @@
 .custom-table .ant-table-tbody > tr > td:nth-child(2) {
   font-weight: 600;
 }
+
+.custom-table .ant-table-placeholder {
+  height: 520px;
+}
+
+.custom-table .ant-spin-nested-loading,
+.custom-table .ant-spin-container {
+  min-height: 520px;
+}
+
+.custom-table .ant-spin {
+  max-height: none !important;
+}
+
+.app-layout-card > .ant-card-body {
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.vertical-line {
+  width: 1px;
+  height: 500px;
+  background-color: #d9d9d9;
+  margin-right: 16px;
+}
