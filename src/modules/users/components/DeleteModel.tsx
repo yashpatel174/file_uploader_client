@@ -1,16 +1,37 @@
 import { Modal } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../../../config/store";
-import { deleteUser, setDeleteModel } from "../slice";
+import { deleteUser, getAllUsers, setDeleteModel } from "../slice";
 
-const DeleteModel = ({ userId, setDeleteUserId }) => {
+interface DeleteModelProps {
+  userId: string | null;
+  setDeleteUserId: React.Dispatch<React.SetStateAction<string | null>>;
+}
+
+const DeleteModel = ({ userId, setDeleteUserId }: DeleteModelProps) => {
+  if (!userId) return;
   const dispatch = useDispatch<AppDispatch>();
-  const { deleteModel, deleteLoading } = useSelector(
+  const { deleteModel, deleteLoading, page, user, limit } = useSelector(
     (state: RootState) => state.data,
   );
 
   const handleDelete = async () => {
-    dispatch(deleteUser(userId)).then(() => setDeleteUserId(null));
+    const nextPage = page > 1 && user.length === 1 ? page - 1 : page;
+    dispatch(deleteUser(userId as string)).then((res) => {
+      if (
+        res.payload &&
+        typeof res.payload !== "string" &&
+        "success" in res.payload === true
+      ) {
+        dispatch(
+          getAllUsers({
+            page: nextPage,
+            limit: limit,
+          }),
+        );
+        setDeleteUserId(null);
+      }
+    });
   };
 
   return (

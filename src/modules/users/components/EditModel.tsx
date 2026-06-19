@@ -5,60 +5,77 @@ import {
   Input,
   message,
   Modal,
+  Progress,
   Radio,
   Row,
   Segmented,
   Select,
   Space,
+  Tag,
+  type RadioChangeEvent,
 } from "antd";
 import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../../../config/store";
 import type {
+  EditFormValues,
   IUnitProps,
   IUserData,
   SizeUnit,
+  UnitType,
 } from "../../../interfaces/interface";
 import { fileSizeOptions, unitOptions } from "../../../utils/column";
-import { buildPayload, dynamicData } from "../../../utils/functions";
+import {
+  buildPayload,
+  dynamicData,
+  paginationPayload,
+} from "../../../utils/functions";
+import { getStorageStatus, getUsagePercentage } from "../../../utils/menuItems";
 import { toBytes } from "../../../utils/sizeConverter";
 import { parseDurationToSeconds } from "../../../utils/timeConverter";
 import { timeValidation, unitValidation } from "../../../utils/validation";
 import { getAllUsers, setCloseModel, updateUserInfo } from "../slice";
 
-const EditModel: React.FC<IUnitProps> = ({ unit }) => {
+const EditModel: React.FC<IUnitProps> = ({ unit = "KB" }) => {
   const dispatch = useDispatch<AppDispatch>();
   const [form] = Form.useForm();
-  const [userData, setUserData] = useState({});
+  const [userData, setUserData] = useState<IUserData | null>(null);
+  const [percent, setPercent] = useState<number>(0);
 
   const newUnit: SizeUnit = Form.useWatch("newUnit", form);
   const operator: string = Form.useWatch("opearation", form);
   const toggleUnit: string = Form.useWatch("unit", form);
+  const newSize: string = Form.useWatch("newSize", form);
+  const newTime: string = Form.useWatch("newTime", form);
 
   const { isModelOpen, userInfo } = useSelector(
     (state: RootState) => state.data,
   );
+  if (!userInfo) return null;
 
   useEffect(() => {
     setUserData(userInfo);
-    const formattedData = dynamicData(userInfo as any, userInfo.unit);
+    const formattedData = dynamicData(
+      userInfo as any,
+      userInfo.unit as UnitType,
+    );
     form.setFieldsValue({ ...(userInfo as IUserData), ...formattedData });
   }, []);
 
-  const handleUnitChange = (e) => {
-    const value = e.target.value;
+  const handleUnitChange = (e: RadioChangeEvent) => {
+    const value: UnitType = e.target.value;
     const data = dynamicData(userData as any, value);
     form.setFieldsValue(data);
   };
 
-  const handleSubmit = async (values) => {
+  const handleSubmit = async (values: EditFormValues) => {
     try {
       const finalData = buildPayload(values, userInfo);
       await dispatch(updateUserInfo(finalData));
 
       dispatch(setCloseModel());
       form.resetFields();
-      dispatch(getAllUsers());
+      await dispatch(getAllUsers(paginationPayload));
     } catch (error) {
       message.error(
         error instanceof Error ? error.message : "Something went wrong",
@@ -80,6 +97,19 @@ const EditModel: React.FC<IUnitProps> = ({ unit }) => {
   };
 
   const labels = selectedOption(toggleUnit);
+
+  useEffect(() => {
+    setPercent(getUsagePercentage(userInfo, toggleUnit));
+  }, [toggleUnit]);
+
+  const { status, color } = getStorageStatus(percent);
+
+  useEffect(() => {
+    form.validateFields(["newSize", "newTime"]);
+  }, [operator, toggleUnit, form]);
+
+  // const required =
+  //   unit === "size" ? !fileSizelimit || !selectedUnit : !givenTime;
 
   return (
     <>
@@ -116,6 +146,11 @@ const EditModel: React.FC<IUnitProps> = ({ unit }) => {
                   options={unitOptions}
                   onChange={handleUnitChange}
                 />
+              </Form.Item>
+            </Col>
+            <Col span={12}>
+              <Form.Item label={<Tag color={color}>{status}</Tag>}>
+                <Progress percent={percent} strokeColor={color} />
               </Form.Item>
             </Col>
           </Row>
@@ -158,6 +193,7 @@ const EditModel: React.FC<IUnitProps> = ({ unit }) => {
                   <Form.Item
                     label={"New Size"}
                     name="newSize"
+                    dependencies={["opearation", "unit", "newUnit"]}
                     validateFirst
                     rules={[
                       { required: true, message: "New size is required" },
@@ -180,9 +216,8 @@ const EditModel: React.FC<IUnitProps> = ({ unit }) => {
                           if (operator === "-") {
                             if (toggleUnit === "size") {
                               const newValue = toBytes(Number(value), newUnit);
-                              const availableSize =
-                                userInfo[toggleUnit].available;
-                              if (newValue > Number(availableSize)) {
+                              const { available } = userInfo[toggleUnit];
+                              if (newValue > Number(available)) {
                                 return Promise.reject(
                                   "Value must lesser than available size",
                                 );
@@ -216,6 +251,7 @@ const EditModel: React.FC<IUnitProps> = ({ unit }) => {
                   <Form.Item
                     label={"New Minutes"}
                     name="newTime"
+                    dependencies={["opearation"]}
                     validateFirst
                     required
                     rules={[
@@ -226,9 +262,8 @@ const EditModel: React.FC<IUnitProps> = ({ unit }) => {
                             if (toggleUnit === "time") {
                               const { totalSeconds } =
                                 parseDurationToSeconds(value);
-                              const availableTime =
-                                userInfo[toggleUnit].available;
-                              if (totalSeconds > Number(availableTime)) {
+                              const { available } = userInfo[toggleUnit];
+                              if (totalSeconds > Number(available)) {
                                 return Promise.reject(
                                   "Time duration limit exceeds!",
                                 );
@@ -262,11 +297,29 @@ const EditModel: React.FC<IUnitProps> = ({ unit }) => {
                   justifyContent: "flex-end",
                 }}
               >
-                <Button onClick={handleClose}>Cancel</Button>
+                <Form.Item>
+                  <Button onClick={handleClose}>Cancel</Button>
+                </Form.Item>
+                <Form.Item shouldUpdate>
+                  {() => {
+                    const hasErrors = form
+                      .getFieldsError()
+                      .some(({ errors }) => errors.length > 0);
 
-                <Button type="primary" onClick={() => form.submit()}>
-                  OK
-                </Button>
+                    const disable =
+                      toggleUnit === "size" ? !newUnit || !newSize : !newTime;
+
+                    return (
+                      <Button
+                        type="primary"
+                        onClick={() => form.submit()}
+                        disabled={hasErrors || disable}
+                      >
+                        OK
+                      </Button>
+                    );
+                  }}
+                </Form.Item>
               </Space>
             </Col>
           </Row>

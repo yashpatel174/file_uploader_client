@@ -14,6 +14,7 @@ import {
 
 const UserData: React.FC<IUserDataProps> = ({ userData }) => {
   const dispatch = useDispatch<AppDispatch>();
+  if (!userData) return;
   const { userName, count } = userData;
   const [audioUI, setAudioUI] = useState<{ audioId: string; play: boolean }>({
     audioId: "",
@@ -24,19 +25,22 @@ const UserData: React.FC<IUserDataProps> = ({ userData }) => {
   );
 
   const handleClose = () => dispatch(setCloseUserData());
-  const getAudio = async () => await dispatch(getAllFiles(userData.userId));
+  const getAudio = async () => {
+    if (!userData.userId) return;
+    await dispatch(getAllFiles(userData.userId));
+  };
 
   useEffect(() => {
     getAudio();
   }, []);
 
-  const handleAudioPlay = async (audioId) => {
+  const handleAudioPlay = async (audioId: string) => {
     try {
       dispatch(setAudioLoading(true));
       setAudioUI({ audioId, play: true });
       await dispatch(getAudioPlayed(audioId as string));
     } catch (error) {
-      console.log("error: ", error.message);
+      console.log("error: ", (error as Error).message);
     } finally {
       dispatch(setAudioLoading(false));
     }
@@ -91,9 +95,9 @@ const UserData: React.FC<IUserDataProps> = ({ userData }) => {
                       indicator={antIcon}
                       style={{
                         width: "100%",
-                        height: "44px",
-                        paddingRight: "230px",
+                        height: "40px",
                         display: "flex",
+                        paddingRight: "230px",
                         justifyContent: "center",
                       }}
                     />
@@ -102,9 +106,8 @@ const UserData: React.FC<IUserDataProps> = ({ userData }) => {
                       controls
                       preload="metadata"
                       style={{ width: "100%", height: "3em" }}
-                    >
-                      <source src={aud.audioUrl} />
-                    </audio>
+                      src={aud.audioUrl}
+                    />
                   )}
                   <LeftOutlined
                     style={{ margin: "0 10px" }}

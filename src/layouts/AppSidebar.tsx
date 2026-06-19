@@ -12,16 +12,6 @@ export default function AppSidebar() {
       <Menu
         mode="inline"
         selectedKeys={[location.pathname]}
-        // items={[
-        //   {
-        //     key: "/users",
-        //     label: <Link to="/users">Users</Link>,
-        //   },
-        //   {
-        //     key: "/file-upload",
-        //     label: <Link to="/file-upload">File Upload</Link>,
-        //   },
-        // ]}
         items={menuItems.map((item) => ({
           key: item.key,
           label: <Link to={item.key}>{item.label}</Link>,

@@ -1,48 +1,48 @@
 import type { CheckboxGroupProps } from "antd/es/checkbox";
 import type { ColumnsType } from "antd/es/table";
 import { type ReactNode } from "react";
-import type { IUserTableRow } from "../interfaces/interface";
+import type { IUserTable } from "../interfaces/interface";
 
 export const tableColumn = (
-  func: (record: IUserTableRow) => ReactNode,
-): ColumnsType<IUserTableRow> => {
+  func: (record: IUserTable) => ReactNode,
+): ColumnsType<IUserTable> => {
   return [
     {
       title: "Index",
       dataIndex: "id",
       align: "center",
-      width: 180,
+      width: "10%",
     },
     {
       title: "Username",
       dataIndex: "userName",
       align: "center",
-      width: 360,
+      width: "20%",
     },
     {
       title: "Total",
       dataIndex: "total",
       align: "center",
-      width: 270,
+      width: "15%",
     },
     {
       title: "Used",
       dataIndex: "consumed",
       align: "center",
-      width: 270,
+      width: "15%",
     },
     {
       title: "Available",
       dataIndex: "available",
       align: "center",
-      width: 270,
+      width: "15%",
     },
     {
       title: "Action",
       key: "action",
       dataIndex: "action",
       align: "center",
-      width: 200,
+      width: "15%",
       render: (_, record) => func(record),
     },
   ];

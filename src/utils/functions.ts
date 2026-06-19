@@ -2,14 +2,15 @@ import type {
   IBaseOperation,
   IEditData,
   IFormattedUsage,
-  IUserUsage,
+  IUserData,
+  IUserInfo,
   UnitType,
 } from "../interfaces/interface";
 import { formatBytes, slotOperation, toBytes } from "./sizeConverter";
 import { formatDuration, parseDurationToSeconds } from "./timeConverter";
 
 export const dynamicData = (
-  user: IUserUsage,
+  user: IUserInfo,
   dataUnit: UnitType,
 ): IFormattedUsage => {
   const total = Number(user[dataUnit].total);
@@ -31,7 +32,7 @@ export const dynamicData = (
   };
 };
 
-export const buildPayload = (values, userInfo): IEditData => {
+export const buildPayload = (values: any, userInfo: IUserData): IEditData => {
   const { unit, opearation } = values;
   const isSize = unit === "size";
 
@@ -40,9 +41,9 @@ export const buildPayload = (values, userInfo): IEditData => {
     : parseDurationToSeconds(values.newTime).totalSeconds;
 
   const config: IBaseOperation = {
-    available: Number(userInfo[unit].available) || 0,
-    total: Number(userInfo[unit].total) || 0,
-    consumed: Number(userInfo[unit].consumed) || 0,
+    available: Number(userInfo[unit as UnitType].available) || 0,
+    total: Number(userInfo[unit as UnitType].total) || 0,
+    consumed: Number(userInfo[unit as UnitType].consumed) || 0,
     incomingValue,
     availableError: isSize
       ? "New value must be lesser than available size"
@@ -68,3 +69,5 @@ export const buildPayload = (values, userInfo): IEditData => {
     newValue: newTotalBytes,
   };
 };
+
+export const paginationPayload = { page: 1, limit: 10 };

@@ -1,10 +1,20 @@
 import { Modal } from "antd";
+import type { Dispatch, SetStateAction } from "react";
 import { instruction } from "../../../utils/instruction";
+import type { IPlatform } from "../FileUpload";
 
-const InstructionModel = ({ platform, openModel, setOpenModel }) => {
+interface IProp {
+  platform: IPlatform;
+  openModel: boolean;
+  setOpenModel: Dispatch<SetStateAction<boolean>>;
+}
+
+type InstructionItem = Record<string, string[]>;
+
+const InstructionModel = ({ platform, openModel, setOpenModel }: IProp) => {
   const handleClose = () => setOpenModel(false);
-  const platformKey = (platform: string) => {
-    switch (platform) {
+  const platformKey = (loc: IPlatform) => {
+    switch (loc) {
       case "Google Drive":
         return "google_drive";
 
@@ -16,7 +26,9 @@ const InstructionModel = ({ platform, openModel, setOpenModel }) => {
     }
   };
 
-  const data = instruction[platformKey(platform)] || [];
+  if (!platform) return null;
+  const key = platform ? platformKey(platform as IPlatform) : null;
+  const data = key ? instruction[key] : [];
 
   return (
     <>
@@ -31,10 +43,10 @@ const InstructionModel = ({ platform, openModel, setOpenModel }) => {
         footer={null}
       >
         <>
-          {data?.map((instruction, index) => (
+          {data?.map((instruction: InstructionItem, index: number) => (
             <div key={index}>
-              {Object.entries(instruction).map(
-                ([heading, steps]: [string, string[]]) => (
+              {Object.entries(instruction as Record<string, string[]>).map(
+                ([heading, steps]) => (
                   <div key={heading} style={{ marginBottom: 20 }}>
                     <h3>{heading}</h3>
 

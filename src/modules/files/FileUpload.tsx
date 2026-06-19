@@ -6,7 +6,6 @@ import {
   Form,
   Input,
   message,
-  Radio,
   Row,
   Select,
   Space,
@@ -16,11 +15,16 @@ import {
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../../config/store";
-import { unitOptions } from "../../utils/column";
+import type { IAuthProviders, IDropdown } from "../../interfaces/interface";
 import { openDropboxPopup } from "../../utils/dropboxPopup";
+import { paginationPayload } from "../../utils/functions";
 import { fileUploadPlatform } from "../../utils/menuItems";
-import { unitValidation } from "../../utils/validation";
-import { getAllUsers, googleConnected, uploadFile } from "../users/slice";
+import {
+  authConnection,
+  getAllUsers,
+  googleConnected,
+  uploadFile,
+} from "../users/slice";
 import InstructionModel from "./components/InstructionModel";
 
 interface FileUploadFormValues {
@@ -33,18 +37,40 @@ interface FileUploadFormValues {
   dropboxSecretKey?: string;
 }
 
-type IPlatform = "Dropbox" | "Google Drive" | null;
+export type IPlatform = "Dropbox" | "Google Drive" | null;
 
 const FileUpload = () => {
   const [form] = Form.useForm();
   const dispatch = useDispatch<AppDispatch>();
   const [file, setFile] = useState<boolean>(false);
+  const [authLoading, setAuthLoading] = useState<boolean>(false);
   const [instructionOf, setInstructionOf] = useState<IPlatform>(null);
   const [openModel, setOpenModel] = useState<boolean>(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const { dropdown, fileLoading } = useSelector(
     (state: RootState) => state.data,
   );
+  const [auth, setAuth] = useState<IAuthProviders>({
+    googleAuth: false,
+    dropboxAuth: false,
+  });
+  const [authToken, setAuthToken] = useState<IAuthProviders>({
+    googleAuth: false,
+    dropboxAuth: false,
+  });
+
+  const handleAuthConnection = async () => {
+    setAuthLoading(true);
+    dispatch(authConnection({ platform, _id }))
+      .then((res) => {
+        if (res.payload === "drive") {
+          setAuthToken({ ...authToken, googleAuth: true });
+        } else if (res.payload === "dropbox") {
+          setAuthToken({ ...authToken, dropboxAuth: true });
+        }
+      })
+      .finally(() => setAuthLoading(false));
+  };
 
   const _id = Form.useWatch("_id", form);
   const platform = Form.useWatch("platform", form);
@@ -54,8 +80,19 @@ const FileUpload = () => {
   const dropboxSecretKey = Form.useWatch("dropboxSecretKey", form);
 
   useEffect(() => {
-    if (!dropdown?.length) dispatch(getAllUsers());
-  }, [dispatch, dropdown]);
+    form.resetFields(["platform"]);
+    setAuthToken({ googleAuth: false, dropboxAuth: false });
+    if (_id) {
+      const { googleAuth, dropboxAuth } = dropdown?.find(
+        (u) => u.value === _id,
+      ) as IDropdown;
+      setAuth({ googleAuth, dropboxAuth });
+    }
+  }, [_id]);
+
+  useEffect(() => {
+    if (dropdown?.length === 0) dispatch(getAllUsers(paginationPayload));
+  }, [dropdown]);
 
   const props: UploadProps = {
     name: "file",
@@ -108,15 +145,16 @@ const FileUpload = () => {
           clientSecretKey: values.googleSecretKey,
         };
         await dispatch(googleConnected(payload));
+        const { unit } = dropdown.find((d) => d.value === _id) as IDropdown;
         const formData = new FormData();
-        formData.append("file", uploadedFile);
+        formData.append("file", uploadedFile as any);
         formData.append("_id", values._id);
-        formData.append("unit", values.unit);
+        formData.append("unit", unit);
         formData.append("platform", values.platform);
         dispatch(uploadFile(formData))
-          .then(() => {
+          .then(async () => {
             handleReset();
-            dispatch(getAllUsers());
+            await dispatch(getAllUsers(paginationPayload));
           })
           .catch((err) => console.log("Error =>", err));
       } catch (e: any) {
@@ -127,57 +165,76 @@ const FileUpload = () => {
   });
 
   const dropboxAPI = async (values: FileUploadFormValues) => {
+    const { _id, dropboxAppKey, dropboxSecretKey, platform } = values;
     const tokenData = await openDropboxPopup(
-      values.dropboxAppKey,
-      values.dropboxSecretKey,
-      values._id,
+      dropboxAppKey as string,
+      dropboxSecretKey as string,
+      _id,
     );
+    const { unit } = dropdown.find((d) => d.value === _id) as IDropdown;
 
     if (tokenData) {
       const formData = new FormData();
-      formData.append("file", uploadedFile);
-      formData.append("_id", values._id);
-      formData.append("unit", values.unit);
-      formData.append("platform", values.platform);
+      formData.append("file", uploadedFile as any);
+      formData.append("_id", _id);
+      formData.append("unit", unit);
+      formData.append("platform", platform);
       dispatch(uploadFile(formData))
-        .then(() => {
+        .then(async () => {
+          setAuthToken({ ...authToken, dropboxAuth: false });
           handleReset();
-          dispatch(getAllUsers());
+          await dispatch(getAllUsers(paginationPayload));
         })
         .catch((err) => console.log("Error =>", err));
     }
   };
 
   const handleSubmit = (values: FileUploadFormValues) => {
-    if (values.platform === "drive") {
+    if (values.platform === "drive" && !auth.googleAuth) {
       googleConnect();
-    } else if (values.platform === "dropbox") {
+    } else if (values.platform === "dropbox" && !auth.dropboxAuth) {
       dropboxAPI(values);
     } else {
-      const { _id, platform, unit, googleId, googleSecretKey } = values;
+      const { _id, platform, googleId, googleSecretKey } = values;
       if (!uploadedFile) {
         message.error("Please select a file");
         return;
       }
+      const { unit } = dropdown.find((d) => d.value === _id) as IDropdown;
       const formData = new FormData();
-      formData.append("file", uploadedFile);
+      formData.append("file", uploadedFile as any);
       formData.append("_id", _id);
       formData.append("unit", unit);
       formData.append("platform", platform);
-      formData.append("googleId", googleId);
-      formData.append("googleSecretKey", googleSecretKey);
+      formData.append("googleId", googleId as string);
+      formData.append("googleSecretKey", googleSecretKey as string);
       dispatch(uploadFile(formData))
-        .then(() => {
+        .then(async () => {
           handleReset();
-          dispatch(getAllUsers());
+          await dispatch(getAllUsers(paginationPayload));
         })
-        .catch((err) => console.log("Error =>", err));
+        .catch((err) => console.log("Error =>", err))
+        .finally(() => {
+          setAuthToken({ googleAuth: false, dropboxAuth: false });
+        });
     }
   };
 
-  const isDisable =
-    (platform === "drive" && (!googleId || !googleSecretKey)) ||
-    (platform === "dropbox" && (!dropboxAppKey || !dropboxSecretKey));
+  const isAuthenticated =
+    (platform === "drive" && auth.googleAuth) ||
+    (platform === "dropbox" && auth.dropboxAuth);
+
+  const googleDisabled =
+    platform === "drive" &&
+    (auth.googleAuth ? !authToken.googleAuth : !googleId || !googleSecretKey);
+
+  const dropboxDisabled =
+    platform === "dropbox" &&
+    (auth.dropboxAuth
+      ? !authToken.dropboxAuth
+      : !dropboxAppKey || !dropboxSecretKey);
+
+  const isDisable = googleDisabled || dropboxDisabled;
 
   const handleOpenModal = () => setOpenModel(true);
   return (
@@ -189,9 +246,7 @@ const FileUpload = () => {
         onValuesChange={(value) => {
           if (value._id) {
             const selectedUser = dropdown.find((u) => u.value === value._id);
-            if (selectedUser) {
-              form.setFieldValue("unit", selectedUser.unit);
-            }
+            if (selectedUser) form.setFieldValue("unit", selectedUser.unit);
           }
         }}
       >
@@ -218,29 +273,19 @@ const FileUpload = () => {
                 >
                   <Select
                     suffixIcon={null}
+                    disabled={!_id}
                     showSearch={false}
                     placeholder="Please select a platform"
                     onChange={(e) => {
-                      const platform = fileUploadPlatform?.find(
-                        (f) => f.value === e,
-                      ).label;
+                      const selectedPlatform = fileUploadPlatform?.find(
+                        (f) => f.value === (e as string),
+                      );
+                      if (!selectedPlatform) return;
+                      const platform = selectedPlatform.label as IPlatform;
                       setInstructionOf(platform as IPlatform);
                     }}
                     options={fileUploadPlatform}
                   />
-                </Form.Item>
-              </Col>
-            </Row>
-            <Row gutter={16}>
-              <Col span={10}>
-                <Form.Item
-                  label={"Unit"}
-                  name="unit"
-                  validateFirst
-                  required
-                  rules={unitValidation}
-                >
-                  <Radio.Group block options={unitOptions} disabled={!_id} />
                 </Form.Item>
               </Col>
             </Row>
@@ -313,24 +358,21 @@ const FileUpload = () => {
                   )}
                 </h3>
               </Row>
-              {platform === "drive" && (
+              {platform === "drive" && auth.googleAuth === false ? (
                 <>
                   <Row>
                     <Col span={18} style={{ paddingBottom: "0px" }}>
-                      <Form.Item
-                        name="googleId"
-                        required={platform === "drive"}
-                        label="Client ID"
-                      >
+                      <Form.Item name="googleId" required label="Client ID">
                         <Input />
                       </Form.Item>
                     </Col>
                   </Row>
+
                   <Row gutter={4}>
                     <Col span={18}>
                       <Form.Item
                         name="googleSecretKey"
-                        required={platform === "drive"}
+                        required
                         label="Client Secret Key"
                       >
                         <Input />
@@ -338,31 +380,46 @@ const FileUpload = () => {
                     </Col>
                   </Row>
                 </>
-              )}
-              {platform === "dropbox" && (
+              ) : null}
+              {platform === "dropbox" && auth.dropboxAuth === false ? (
                 <>
                   <Row>
                     <Col span={18} style={{ paddingBottom: "0px" }}>
                       <Form.Item
                         name="dropboxAppKey"
-                        required={platform === "dropbox"}
+                        required
                         label="Dropbox App Key"
                       >
                         <Input />
                       </Form.Item>
                     </Col>
                   </Row>
+
                   <Row gutter={4}>
                     <Col span={18}>
                       <Form.Item
                         name="dropboxSecretKey"
-                        required={platform === "dropbox"}
+                        required
                         label="Dropbox Secret Key"
                       >
                         <Input />
                       </Form.Item>
                     </Col>
                   </Row>
+                </>
+              ) : null}
+              {isAuthenticated && (
+                <>
+                  <Button
+                    type="primary"
+                    onClick={handleAuthConnection}
+                    loading={authLoading}
+                  >
+                    {(platform === "dropbox" && !authToken.dropboxAuth) ||
+                    (platform === "drive" && !authToken.googleAuth)
+                      ? "Check Connection"
+                      : "Authenticated Successfully!"}
+                  </Button>
                 </>
               )}
             </Col>

@@ -12,8 +12,9 @@ import {
 } from "antd";
 import { useDispatch, useSelector } from "react-redux";
 import type { AppDispatch, RootState } from "../../../config/store";
-import type { IUserCreate } from "../../../interfaces/interface";
+import type { IUserCreate, SizeUnit } from "../../../interfaces/interface";
 import { fileSizeOptions, unitOptions } from "../../../utils/column";
+import { paginationPayload } from "../../../utils/functions";
 import { toBytes } from "../../../utils/sizeConverter";
 import { parseDurationToSeconds } from "../../../utils/timeConverter";
 import {
@@ -30,32 +31,36 @@ const AddUser: React.FC = () => {
   const { userLoading, userModel } = useSelector(
     (state: RootState) => state.data,
   );
-  const handleClose = async () => dispatch(setCloseUserModel());
+  const handleClose = async () => {
+    form.resetFields();
+    dispatch(setCloseUserModel());
+  };
 
-  const handleSubmit = async (values) => {
+  const handleSubmit = async (values: IUserCreate) => {
     let { totalTime, totalSize, userName, unit, sizeUnit } = values;
-    let payload: IUserCreate = { userName, unit };
-    if (values.unit === "time") {
-      totalTime = parseDurationToSeconds(totalTime).totalSeconds;
+    let payload: any = { userName, unit };
+    if (unit === "time") {
+      totalTime = totalTime = totalTime
+        ? parseDurationToSeconds(totalTime).totalSeconds
+        : 0;
       payload = { ...payload, totalTime: totalTime };
-    } else if (values.unit === "size") {
-      totalSize = toBytes(Number(totalSize), sizeUnit);
+    } else if (unit === "size") {
+      totalSize = toBytes(Number(totalSize), sizeUnit as SizeUnit);
       payload = { ...payload, totalSizeBytes: totalSize };
     }
 
-    dispatch(createUser(payload))
-      .then((res) => {
-        if (
-          res.payload &&
-          typeof res.payload !== "string" &&
-          "message" in res.payload
-        ) {
-          message.success(res.payload.message);
-          dispatch(getAllUsers());
-          dispatch(setCloseUserModel());
-        }
-      })
-      .catch((err) => console.log("error then: ", err));
+    await dispatch(createUser(payload)).then(async (res) => {
+      if (
+        res.payload &&
+        typeof res.payload !== "string" &&
+        "success" in res.payload === true
+      ) {
+        message.success(res.payload.message);
+        form.resetFields();
+        await dispatch(getAllUsers(paginationPayload));
+        dispatch(setCloseUserModel());
+      }
+    });
   };
 
   const userName = Form.useWatch("userName", form);

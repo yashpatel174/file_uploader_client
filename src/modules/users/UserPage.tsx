@@ -3,36 +3,31 @@ import {
   EditOutlined,
   EyeOutlined,
   SwapOutlined,
-  UploadOutlined,
 } from "@ant-design/icons";
-import { Button, Empty, Space, Table, Tooltip } from "antd";
+import { Button, Empty, Pagination, Space, Table, Tooltip } from "antd";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { useOutletContext } from "react-router-dom";
 import type { AppDispatch, RootState } from "../../config/store";
 import type {
   ISelectedUser,
-  IUserFilePayload,
   IUserTable,
-  IUserUsage,
   SizeUnit,
   UnitType,
 } from "../../interfaces/interface";
 import { tableColumn } from "../../utils/column";
 import { dynamicData } from "../../utils/functions";
-import AddUser from "./components/AddUser";
+import DeleteModel from "./components/DeleteModel";
 import EditModel from "./components/EditModel";
-import UploadModal from "./components/FileUpload";
 import UserData from "./components/UserData";
 import {
   getAllUsers,
   setDeleteModel,
   setOpenModel,
-  setOpenUpload,
   setOpenUserData,
   setUserInfo,
   setUserUnitMap,
 } from "./slice";
-import DeleteModel from "./components/DeleteModel";
 
 const UserPage = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -43,31 +38,26 @@ const UserPage = () => {
     userId: null,
     count: 0,
   });
+  const [page, setPage] = useState<number>(1);
+  const [pageSize, setPageSize] = useState<number>(10);
 
-  const [userFileInfo, setUserFileInfo] = useState<IUserFilePayload>({
-    userId: null,
-    unit: null,
-  });
+  const { search } = useOutletContext<{ search: string }>();
 
-  const {
-    user,
-    loading,
-    userModel,
-    fileModel,
-    deleteModel,
-    isModelOpen,
-    userUnitMap,
-    fileUploadModel,
-  } = useSelector((state: RootState) => state.data);
+  const { user, loading, total, fileModel, isModelOpen, userUnitMap } =
+    useSelector((state: RootState) => state.data);
 
   useEffect(() => {
-    if (!user?.length) dispatch(getAllUsers());
-  }, [user, dispatch]);
+    dispatch(getAllUsers({ page, limit: pageSize }));
+  }, [dispatch, page, pageSize]);
 
   const userList = useMemo(() => {
-    return user?.map((u, idx) => {
+    const filteredData = user.filter((u) =>
+      u.userName.toLowerCase().includes(search.toLowerCase()),
+    );
+
+    return filteredData?.map((u, idx) => {
       const currentUnit: UnitType = userUnitMap[u._id] ?? u.unit ?? "size";
-      const formattedData = dynamicData(u as IUserUsage, currentUnit);
+      const formattedData = dynamicData(u, currentUnit);
 
       return {
         ...u,
@@ -79,71 +69,44 @@ const UserPage = () => {
         unit: currentUnit,
       };
     });
-  }, [user, userUnitMap]);
+  }, [user, userUnitMap, search]);
 
-  const handleFileUpload = async (record) => {
-    setUserFileInfo({ userId: record._id, unit: record.unit });
-    dispatch(setOpenUpload());
-  };
-
-  const handleUpdate = async (record) => {
-    const data = {
-      size: record.size,
-      time: record.time,
-      unit: record.unit,
-      _id: record._id,
-      userName: record.userName,
-    };
-
+  const handleUpdate = async (record: IUserTable) => {
+    const { size, time, unit, _id, userName, available } = record;
     dispatch(setOpenModel());
-    const currentUnit = record.available.split(" ")[1] as SizeUnit;
+    const currentUnit = available.split(" ")[1] as SizeUnit;
     setUnit(currentUnit);
-    dispatch(setUserInfo(data));
+    dispatch(setUserInfo({ size, time, unit, _id, userName }));
   };
 
-  const handleUserData = async (record) => {
+  const handleUserData = async (record: IUserTable) => {
+    const { userName, _id, totalDocuments } = record;
     setUserData({
-      userName: record.userName,
-      userId: record._id,
-      count: record.totalDocuments,
+      userName,
+      userId: _id,
+      count: totalDocuments,
     });
     dispatch(setOpenUserData());
   };
 
-  const handleDeleteUser = async (record) => {
+  const handleDeleteUser = async (record: IUserTable) => {
     setDeleteUserId(record._id);
     dispatch(setDeleteModel(true));
   };
 
   const renderAction = (record: IUserTable): ReactNode => {
     const { unit, totalDocuments, _id } = record;
-    const { total, consumed } = record[unit] || {};
-    const isDisableUpload = total === consumed;
     const isDisableview = totalDocuments === 0;
+    const payloadProp = { userId: _id, defaultUnit: unit as UnitType };
     return (
       <Space size="middle">
         <Tooltip title={"Convert"}>
           <Button
             type="link"
             icon={<SwapOutlined />}
-            onClick={() => {
-              dispatch(
-                setUserUnitMap({
-                  userId: _id,
-                  defaultUnit: unit as UnitType,
-                }),
-              );
-            }}
+            onClick={() => dispatch(setUserUnitMap(payloadProp))}
           />
         </Tooltip>
-        {/* <Tooltip title={"Upload"}>
-          <Button
-            type="link"
-            icon={<UploadOutlined />}
-            disabled={isDisableUpload}
-            onClick={() => handleFileUpload(record)}
-          />
-        </Tooltip> */}
         <Tooltip title={"Edit"}>
           <Button
             type="link"
@@ -162,6 +125,7 @@ const UserPage = () => {
         <Tooltip title={"Delete"}>
           <Button
             type="link"
+            style={{ color: "red" }}
             icon={<DeleteOutlined />}
             onClick={() => handleDeleteUser(record)}
           />
@@ -180,9 +144,10 @@ const UserPage = () => {
         loading={{ spinning: loading }}
         rowKey="_id"
         dataSource={userList}
-        style={{ height: 530, overflowY: "scroll" }}
+        tableLayout="fixed"
+        scroll={{ y: 460 }}
         locale={{
-          emptyText: (
+          emptyText: loading ? null : (
             <Empty
               image={Empty.PRESENTED_IMAGE_SIMPLE}
               style={{
@@ -197,13 +162,22 @@ const UserPage = () => {
         columns={allColumn}
         pagination={false}
       />
-      {userModel && <AddUser />}
-      {fileUploadModel && <UploadModal userFileInfo={userFileInfo} />}
+
+      <div style={{ display: "flex", justifyContent: "flex-end", padding: 10 }}>
+        <Pagination
+          current={page}
+          pageSize={pageSize}
+          total={total}
+          showSizeChanger
+          onChange={(newPage, newPageSize) => {
+            setPage(newPage);
+            setPageSize(newPageSize);
+          }}
+        />
+      </div>
       {isModelOpen && <EditModel unit={unit} />}
       {fileModel && <UserData userData={userData} />}
-      {deleteModel && (
-        <DeleteModel userId={deleteUserId} setDeleteUserId={setDeleteUserId} />
-      )}
+      <DeleteModel userId={deleteUserId} setDeleteUserId={setDeleteUserId} />
     </>
   );
 };

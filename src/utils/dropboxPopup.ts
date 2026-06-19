@@ -19,15 +19,10 @@ export const openDropboxPopup = async (
 
   return new Promise((resolve, reject) => {
     const handleMessage = async (event: MessageEvent) => {
-      if (event.origin !== window.location.origin) {
-        return;
-      }
+      if (event.origin !== window.location.origin) return;
 
       const { code } = await event.data;
-
-      if (!code) {
-        return;
-      }
+      if (!code) return;
 
       try {
         const tokenResponse = await api.post("/api/dropbox/exchange-token", {
@@ -43,7 +38,7 @@ export const openDropboxPopup = async (
           resolve(tokenResponse.data);
         }
       } catch (error) {
-        console.log("error in the catch block: ", error.message);
+        console.log("error in the catch block: ", (error as Error).message);
         reject(error);
       }
     };

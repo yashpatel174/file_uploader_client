@@ -1,33 +1,37 @@
-export interface IUserTableHeader {
-  action?: string;
+export type UnitType = "size" | "time";
+
+export interface IUsage<T = number> {
+  total: T;
+  consumed: T;
+  available: T;
+}
+
+export type IUnitInt = IUsage<number>;
+export type IFormattedUsage = IUsage<string>;
+
+export interface IUserBase {
   _id: string;
-  id: number;
   userName: string;
-  total: string;
-  consumed: string;
-  available: string;
-  totalDocuments?: number;
+}
+
+export interface IUserQuota<T = number | string> {
+  size: IUsage<T>;
+  time: IUsage<T>;
+}
+
+export interface IUserInfo extends IUserBase, IUserQuota<number> {
   unit: UnitType;
-}
-
-interface IReceivedData {
-  total: number;
-  consumed: number;
-  available: number;
-}
-
-export interface IFormattedUsage {
-  total: string;
-  consumed: string;
-  available: string;
+  totalDocuments: number;
+  googleAuth: boolean;
+  dropboxAuth: boolean;
 }
 
 export interface IUserTable {
   available: string;
   consumed: string;
   id: number;
-  size: IReceivedData;
-  time: IReceivedData;
+  size: IUnitInt;
+  time: IUnitInt;
   total: string;
   totalDocuments: number;
   unit: string;
@@ -36,42 +40,54 @@ export interface IUserTable {
   _id: string;
 }
 
-export interface IUserTableRow {
-  id: number;
-  total: string;
-  consumed: string;
-  available: string;
-  unitType: IFormattedUsage;
-  userName: string;
-  _id: string;
-}
-
 export type SizeUnit = "Bytes" | "KB" | "MB" | "GB";
 
-export interface IUserCreate {
-  userName: string;
+export interface IUserUsage {
+  total: number | string;
+  consumed: number | string;
+  available: number | string;
+}
+export interface IPagination {
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
+export interface IUserData extends IUserBase {
   unit: string;
-  totalSizeBytes?: number;
-  totalTime?: number;
-  message?: string;
+  size: IUsage<number>;
+  time: IUsage<number>;
 }
 
-export interface IUserInfo {
-  _id: string;
+export interface IUserTableBase extends IUserBase {
   id: number;
-  available: string;
-  consumed: string;
   total: string;
-  userName: string;
-  unit?: UnitType;
+  consumed: string;
+  available: string;
 }
 
-export interface IUserData {
-  size: IFormattedUsage;
-  time: IFormattedUsage;
+export interface IUserTableRow extends IUserTableBase {
+  unitType: IFormattedUsage;
+}
+
+export interface IUserTable extends IUserTableBase {
+  size: IUnitInt;
+  time: IUnitInt;
+  unit: string;
+  totalDocuments: number;
+  unitType: IFormattedUsage;
+}
+
+export interface IUserTableHeader extends IUserTableBase {
+  action?: string;
   unit: UnitType;
-  _id: string;
-  userName: string;
+  totalDocuments?: number;
+}
+
+export interface IAuthProviders {
+  googleAuth: boolean;
+  dropboxAuth: boolean;
 }
 
 export interface IUser {
@@ -88,29 +104,49 @@ export interface IAudioInfo {
   createdAt: string;
   fileName: string;
 }
-
-export interface IDropdown {
+export interface IDropdown extends IAuthProviders {
   label: string;
   value: string;
-  unit: string;
+  unit: UnitType;
+}
+
+export interface IPaginatedResponse<T> {
+  data: T[];
+  pagination: IPagination;
+}
+
+export interface IUserDropdown extends IUserBase {
+  unit: UnitType;
+  googleAuthenticated: boolean;
+  dropboxAuthenticated: boolean;
+}
+
+export interface IUserResponse {
+  transformedUsers: IUserInfo[];
+  pagination: IPagination;
+  dropdown: IUserDropdown[];
 }
 
 export interface IUserState {
   user: IUserInfo[];
   dropdown: IDropdown[];
   audio: IAudioInfo[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
   loading: boolean;
-  deleteModel: boolean;
   deleteLoading: boolean;
   audioLoading: boolean;
   userLoading: boolean;
-  error: string | null;
+  fileLoading: boolean;
+  deleteModel: boolean;
   isModelOpen: boolean;
-  userInfo: IUserData | null;
   userModel: boolean;
   fileUploadModel: boolean;
   fileModel: boolean;
-  fileLoading: boolean;
+  error: string | null;
+  userInfo: IUserData | null;
   userUnitMap: Record<string, UnitType>;
 }
 
@@ -119,8 +155,26 @@ export interface IUpdateUserPayload {
   totalSizeBytes: number;
 }
 
-export interface IUploadResponse {
+export interface IApiMessage {
   message: string;
+}
+
+export type IUserCreate = IApiMessage & {
+  userName: string;
+  unit: UnitType;
+  totalSizeBytes?: number;
+  totalTime?: number;
+  totalSize?: number;
+  sizeUnit?: string;
+};
+
+export interface IUserSelection {
+  userId: string | null;
+  userName: string | null;
+}
+
+export interface ISelectedUser extends IUserSelection {
+  count: number;
 }
 
 export interface ISlotOperation {
@@ -130,12 +184,6 @@ export interface ISlotOperation {
   operation: "+" | "-";
 }
 
-export interface ISelectedUser {
-  userName: string | null;
-  userId: string | null;
-  count: number;
-}
-
 export interface IUserDataProps {
   userData: ISelectedUser;
 }
@@ -143,14 +191,6 @@ export interface IUserDataProps {
 export interface IUnitProps {
   unit: SizeUnit;
 }
-
-export interface IUserUsage {
-  total: number | string;
-  consumed: number | string;
-  available: number | string;
-}
-
-export type UnitType = "size" | "time";
 
 export interface IEditData {
   userId: string;
@@ -174,4 +214,10 @@ export interface IBaseOperation {
 export interface ConvertSizeOptions {
   precision?: number;
   formatted?: boolean;
+}
+
+export interface EditFormValues {
+  unit: string;
+  totalSizeBytes?: number;
+  totalTime?: number;
 }

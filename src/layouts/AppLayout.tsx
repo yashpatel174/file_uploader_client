@@ -1,19 +1,24 @@
-import { Button, Card, Layout, Typography } from "antd";
-import { useDispatch } from "react-redux";
+import { Button, Card, Input, Layout, Typography } from "antd";
+import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Outlet, useLocation } from "react-router-dom";
+import type { RootState } from "../config/store";
+import AddUser from "../modules/users/components/AddUser";
 import { setOpenUserModel } from "../modules/users/slice";
-import { menuItems } from "../utils/menuItems";
 import AppSidebar from "./AppSidebar";
 
 const { Content } = Layout;
 
 function AppLayout() {
   const { Title } = Typography;
-  const location = useLocation();
   const dispatch = useDispatch();
   const handleAddUser = () => dispatch(setOpenUserModel());
-  // const heading =
-  //   menuItems.find((m) => m.key === location.pathname).label || "/";
+  const [search, setSearch] = useState<string>("");
+
+  const location = useLocation();
+  const userPage = location.pathname === "/users";
+
+  const { user } = useSelector((state: RootState) => state.data);
 
   const TableHeader = (
     <div
@@ -27,13 +32,24 @@ function AppLayout() {
       <Title level={5} style={{ margin: 0 }}>
         File Size Access Limit
       </Title>
-      <Button
-        style={{ margin: 0, width: "80px", backgroundColor: "#5567ed" }}
-        type="primary"
-        onClick={handleAddUser}
-      >
-        Add
-      </Button>
+      {userPage && (
+        <>
+          <Input.Search
+            placeholder="Search user..."
+            disabled={user.length === 0}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{ width: 500 }}
+          />
+
+          <Button
+            style={{ margin: 0, width: "80px", backgroundColor: "#5567ed" }}
+            type="primary"
+            onClick={handleAddUser}
+          >
+            Add
+          </Button>
+        </>
+      )}
     </div>
   );
   return (
@@ -53,12 +69,12 @@ function AppLayout() {
             }}
           >
             <div style={{ height: "100%", overflow: "hidden" }}>
-              {/* <h2 style={{ margin: 0 }}>{heading}</h2> */}
-              <Outlet />
+              <Outlet context={{ search }} />
             </div>
           </Content>
         </Layout>
       </Card>
+      <AddUser />
     </Layout>
   );
 }

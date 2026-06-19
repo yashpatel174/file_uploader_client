@@ -7,13 +7,13 @@ import { message } from "antd";
 import axios from "axios";
 import type { AppThunk } from "../../config/store";
 import type {
+  IApiMessage,
   IAudioInfo,
   IEditData,
-  IUploadResponse,
   IUser,
   IUserCreate,
   IUserData,
-  IUserInfo,
+  IUserResponse,
   IUserState,
   UnitType,
 } from "../../interfaces/interface";
@@ -24,6 +24,10 @@ const initialState: IUserState = {
   user: [],
   dropdown: [],
   audio: [],
+  total: 0,
+  page: 1,
+  limit: 10,
+  totalPages: 1,
   loading: false,
   deleteModel: false,
   deleteLoading: false,
@@ -41,11 +45,8 @@ const initialState: IUserState = {
 
 const UserSlice = createSlice({
   name: "User",
-  initialState,
+  initialState: initialState as IUserState,
   reducers: {
-    setUser: (state, action: PayloadAction<IUserInfo[]>) => {
-      state.user = action.payload;
-    },
     setOpenModel: (state) => {
       state.isModelOpen = true;
     },
@@ -96,28 +97,38 @@ const UserSlice = createSlice({
       .addCase(createUser.fulfilled, (state) => {
         state.userLoading = false;
       })
-      .addCase(createUser.rejected, (state, action: PayloadAction<string>) => {
+      .addCase(createUser.rejected, (state, action) => {
         state.userLoading = false;
-        state.error = action.payload;
+        state.error =
+          action.payload ?? action.error.message ?? "Something went wrong";
       })
       .addCase(getAllUsers.pending, (state) => {
         state.loading = true;
       })
       .addCase(
         getAllUsers.fulfilled,
-        (state, action: PayloadAction<IUserInfo[]>) => {
+        (state, action: PayloadAction<IUserResponse>) => {
           state.loading = false;
-          state.user = action.payload;
-          state.dropdown = action.payload?.map((u) => ({
+          const { pagination, transformedUsers, dropdown } = action.payload;
+          const { limit, page, total, totalPages } = pagination;
+          state.total = total;
+          state.page = page;
+          state.totalPages = totalPages;
+          state.limit = limit;
+          state.user = transformedUsers;
+          state.dropdown = dropdown?.map((u) => ({
             label: u.userName,
             value: u._id,
             unit: u.unit,
+            googleAuth: u.googleAuthenticated,
+            dropboxAuth: u.dropboxAuthenticated,
           }));
         },
       )
-      .addCase(getAllUsers.rejected, (state, action: PayloadAction<string>) => {
+      .addCase(getAllUsers.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error =
+          action.payload ?? action.error.message ?? "Something went wrong";
       })
       .addCase(uploadFile.pending, (state) => {
         state.fileLoading = true;
@@ -125,9 +136,10 @@ const UserSlice = createSlice({
       .addCase(uploadFile.fulfilled, (state) => {
         state.fileLoading = false;
       })
-      .addCase(uploadFile.rejected, (state, action: PayloadAction<string>) => {
+      .addCase(uploadFile.rejected, (state, action) => {
         state.fileLoading = false;
-        state.error = action.payload;
+        state.error =
+          action.payload ?? action.error.message ?? "Something went wrong";
       })
       .addCase(getAllFiles.pending, (state) => {
         state.loading = true;
@@ -139,9 +151,10 @@ const UserSlice = createSlice({
           state.audio = action.payload;
         },
       )
-      .addCase(getAllFiles.rejected, (state, action: PayloadAction<string>) => {
+      .addCase(getAllFiles.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload;
+        state.error =
+          action.payload ?? action.error.message ?? "Something went wrong";
       })
       .addCase(deleteUser.pending, (state) => {
         state.deleteLoading = true;
@@ -150,16 +163,16 @@ const UserSlice = createSlice({
         state.deleteLoading = false;
         if (action.payload.success === true) {
           const deletedUserId = action.payload.result;
-          state.user = state.user.filter((user) => user._id !== deletedUserId);
           state.dropdown = state.dropdown.filter(
             (user) => user.value !== deletedUserId,
           );
           state.deleteModel = false;
         }
       })
-      .addCase(deleteUser.rejected, (state, action: PayloadAction<string>) => {
+      .addCase(deleteUser.rejected, (state, action) => {
         state.deleteLoading = false;
-        state.error = action.payload;
+        state.error =
+          action.payload ?? action.error.message ?? "Something went wrong";
         state.user = [];
       });
   },
@@ -187,13 +200,15 @@ export const createUser = createAsyncThunk<
 });
 
 export const getAllUsers = createAsyncThunk<
-  IUserInfo[],
-  void,
+  IUserResponse,
+  { page: number; limit: number },
   { rejectValue: string }
->("users/list", async (_, { rejectWithValue }) => {
+>("users/list", async ({ page = 1, limit = 10 }, { rejectWithValue }) => {
   try {
-    const { data } = await api.get(API_URL.GET_USERS);
-    return data.result ?? [];
+    const {
+      data: { result },
+    } = await api.get(API_URL.GET_USERS(page, limit));
+    return result ?? [];
   } catch (error) {
     if (axios.isAxiosError(error)) {
       message.error(error.response?.data?.message);
@@ -226,7 +241,7 @@ export const updateUserInfo = createAsyncThunk<
 });
 
 export const uploadFile = createAsyncThunk<
-  IUploadResponse,
+  IApiMessage,
   FormData,
   { rejectValue: string }
 >("/file/upload", async (payload) => {
@@ -316,8 +331,29 @@ export const deleteUser = createAsyncThunk<
   }
 });
 
+export const authConnection = createAsyncThunk<
+  { result: string },
+  { platform: string; _id: string },
+  { rejectValue: string }
+>("/auth", async ({ platform, _id }, { rejectWithValue }) => {
+  try {
+    const res = await api.get(API_URL.AUTH_CONNECTION(platform, _id));
+    message.success(res.data.message);
+    return res.data.result;
+  } catch (error) {
+    let errorMessage = "";
+    if (axios.isAxiosError(error)) {
+      errorMessage = error.response?.data?.message || error.message;
+    } else if (error instanceof Error) {
+      errorMessage = error.message;
+    }
+
+    message.error(errorMessage);
+    return rejectWithValue(errorMessage);
+  }
+});
+
 export const {
-  setUser,
   setUserInfo,
   setOpenModel,
   setCloseModel,
