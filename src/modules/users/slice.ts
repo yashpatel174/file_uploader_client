@@ -17,7 +17,7 @@ import type {
   IUserState,
   UnitType,
 } from "../../interfaces/interface";
-import { api } from "../../utils/intercepter";
+import api from "../../utils/intercepter";
 import { API_URL } from "../../utils/url";
 
 const initialState: IUserState = {

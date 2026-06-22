@@ -81,3 +81,38 @@ export const timeValidation = [
       "Enter either a single digit after decimal or exactly 2 digits after colon",
   },
 ];
+
+export const password = [
+  {
+    required: true,
+    message: `Password is required`,
+  },
+  {
+    pattern: /^(?!\s)(.*\S)?$/,
+    message: "Leading and trailing spaces are not allowed",
+  },
+  {
+    pattern: /^\S+$/,
+    message: "Spaces are not allowed",
+  },
+  {
+    pattern: /^(?=.*[a-z]).+$/,
+    message: "At least 1 lowercase is required",
+  },
+  {
+    pattern: /^(?=.*[A-Z]).+$/,
+    message: "At least one uppercase is required",
+  },
+  {
+    pattern: /^(?=.*[0-9]).+$/,
+    message: "At least one number is required",
+  },
+  {
+    pattern: /^(?=.*[!@#$%^&*()_+{}:"|?><]).+$/,
+    message: "At least one special character is required",
+  },
+  {
+    pattern: /^.{8,16}$/,
+    message: "Password must be between 8 and 16 characters",
+  },
+];

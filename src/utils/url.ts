@@ -1,4 +1,7 @@
 export const API_URL = {
+  LOGIN: "/admin/login", // POST
+  LOGOUT: "/admin/logout", // POST
+  REFRESH_TOKEN: "/auth/refresh", // POST
   CREATE_USER: "/user/create", // POST
   GET_USERS: (page: number, limit: number) =>
     `/users?page=${page}&limit=${limit}`, // GET

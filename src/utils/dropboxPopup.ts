@@ -1,6 +1,6 @@
 import { message } from "antd";
 import axios from "axios";
-import { api } from "./intercepter";
+import api from "./intercepter";
 
 export const openDropboxPopup = async (
   appKey: string,

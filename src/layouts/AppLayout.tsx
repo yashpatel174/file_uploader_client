@@ -1,8 +1,9 @@
 import { Button, Card, Input, Layout, Typography } from "antd";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { Outlet, useLocation } from "react-router-dom";
-import type { RootState } from "../config/store";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import type { AppDispatch, RootState } from "../config/store";
+import { loggingOut } from "../modules/auth/slice";
 import AddUser from "../modules/users/components/AddUser";
 import { setOpenUserModel } from "../modules/users/slice";
 import AppSidebar from "./AppSidebar";
@@ -10,15 +11,20 @@ import AppSidebar from "./AppSidebar";
 const { Content } = Layout;
 
 function AppLayout() {
-  const { Title } = Typography;
-  const dispatch = useDispatch();
-  const handleAddUser = () => dispatch(setOpenUserModel());
   const [search, setSearch] = useState<string>("");
-
+  const { Title } = Typography;
+  const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
   const location = useLocation();
   const userPage = location.pathname === "/users";
 
   const { user } = useSelector((state: RootState) => state.data);
+
+  const handleAddUser = () => dispatch(setOpenUserModel());
+  const handleLogout = async () => {
+    const { success } = await dispatch(loggingOut()).unwrap();
+    if (success === true) await navigate("/login");
+  };
 
   const TableHeader = (
     <div
@@ -40,14 +46,27 @@ function AppLayout() {
             onChange={(e) => setSearch(e.target.value)}
             style={{ width: 500 }}
           />
-
-          <Button
-            style={{ margin: 0, width: "80px", backgroundColor: "#5567ed" }}
-            type="primary"
-            onClick={handleAddUser}
-          >
-            Add
-          </Button>
+          <div>
+            <Button
+              style={{
+                margin: 0,
+                width: "80px",
+                backgroundColor: "#5567ed",
+                marginRight: "10px",
+              }}
+              type="primary"
+              onClick={handleAddUser}
+            >
+              Add
+            </Button>
+            <Button
+              style={{ margin: 0, width: "80px", backgroundColor: "#5567ed" }}
+              type="primary"
+              onClick={handleLogout}
+            >
+              Logout
+            </Button>
+          </div>
         </>
       )}
     </div>

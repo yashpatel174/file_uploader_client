@@ -214,9 +214,7 @@ const FileUpload = () => {
           await dispatch(getAllUsers(paginationPayload));
         })
         .catch((err) => console.log("Error =>", err))
-        .finally(() => {
-          setAuthToken({ googleAuth: false, dropboxAuth: false });
-        });
+        .finally(() => setAuthToken({ googleAuth: false, dropboxAuth: false }));
     }
   };
 

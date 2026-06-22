@@ -4,10 +4,12 @@ import {
   type ThunkAction,
 } from "@reduxjs/toolkit";
 import dataReducer from "../modules/users/slice";
+import authReducer from "../modules/auth/slice";
 
 export const store = configureStore({
   reducer: {
     data: dataReducer,
+    auth: authReducer,
   },
 });
 
