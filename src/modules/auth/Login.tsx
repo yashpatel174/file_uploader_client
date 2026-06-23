@@ -1,14 +1,12 @@
-import React from "react";
 import { Button, Card, Col, Form, Input, Row, Typography } from "antd";
+import React, { useState } from "react";
 import { useDispatch } from "react-redux";
-
-import { handleLogin } from "./slice";
-import { password, username } from "../../utils/validation";
 import { useNavigate } from "react-router-dom";
 import type { AppDispatch } from "../../config/store";
+import { passwordValidation, usernameValidation } from "../../utils/validation";
+import { handleLogin } from "./slice";
 
 const { Title } = Typography;
-
 export interface LoginFormValues {
   userName: string;
   password: string;
@@ -17,21 +15,33 @@ export interface LoginFormValues {
 const Login: React.FC = () => {
   const [form] = Form.useForm<LoginFormValues>();
   const dispatch = useDispatch<AppDispatch>();
+  const [loginLoading, setLoginLoading] = useState<boolean>(false);
   const navigate = useNavigate();
 
   const handleFinish = async (values: LoginFormValues) => {
-    const { success } = await dispatch(
-      handleLogin(values as LoginFormValues),
-    ).unwrap();
-    if (success === true) await navigate("/login");
+    setLoginLoading(true);
+    await dispatch(handleLogin(values as LoginFormValues))
+      .unwrap()
+      .then((res) => {
+        if (res.success === true) navigate("/login");
+      })
+      .finally(() => {
+        setLoginLoading(false);
+      });
   };
+
+  const userName = Form.useWatch("userName", form);
+  const password = Form.useWatch("password", form);
+  const hasErrors = form
+    .getFieldsError()
+    .some(({ errors }) => errors.length > 0);
 
   return (
     <Row
       justify="center"
       align="middle"
       style={{
-        minHeight: "100vh",
+        minHeight: "95vh",
         padding: 16,
       }}
     >
@@ -58,22 +68,29 @@ const Login: React.FC = () => {
               label="Username"
               name="userName"
               validateFirst
-              rules={username}
+              rules={usernameValidation}
             >
-              <Input placeholder="Enter username" allowClear />
+              <Input placeholder="admin_123" allowClear />
             </Form.Item>
 
             <Form.Item
               label="Password"
               name="password"
               validateFirst
-              rules={password}
+              rules={passwordValidation}
             >
-              <Input.Password placeholder="Enter password" />
+              <Input.Password placeholder="Admin@123" />
             </Form.Item>
 
             <Form.Item style={{ marginBottom: 0 }}>
-              <Button type="primary" htmlType="submit" block size="large">
+              <Button
+                type="primary"
+                htmlType="submit"
+                block
+                size="large"
+                loading={loginLoading}
+                disabled={!userName || !password || hasErrors}
+              >
                 Login
               </Button>
             </Form.Item>

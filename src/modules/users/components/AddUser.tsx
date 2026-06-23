@@ -21,7 +21,7 @@ import {
   fileSize,
   timeValidation,
   unitValidation,
-  username,
+  usernameValidation,
 } from "../../../utils/validation";
 import { createUser, getAllUsers, setCloseUserModel } from "../slice";
 
@@ -99,7 +99,7 @@ const AddUser: React.FC = () => {
               name="userName"
               validateFirst
               required
-              rules={username}
+              rules={usernameValidation}
             >
               <Input />
             </Form.Item>

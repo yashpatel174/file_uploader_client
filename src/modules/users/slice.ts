@@ -83,7 +83,16 @@ const UserSlice = createSlice({
     ) => {
       const { userId, defaultUnit = "size" } = action.payload;
       const currentUnit = state.userUnitMap[userId] ?? defaultUnit;
-      state.userUnitMap[userId] = currentUnit === "size" ? "time" : "size";
+      const newUnit = currentUnit === "size" ? "time" : "size";
+      state.userUnitMap[userId] = newUnit;
+      state.dropdown = state.dropdown.map((item) =>
+        item.value === userId
+          ? {
+              ...item,
+              unit: newUnit,
+            }
+          : item,
+      );
     },
     setAudioLoading: (state, action) => {
       state.audioLoading = action.payload;

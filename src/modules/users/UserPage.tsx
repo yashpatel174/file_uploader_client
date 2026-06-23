@@ -99,7 +99,7 @@ const UserPage = () => {
     const isDisableview = totalDocuments === 0;
     const payloadProp = { userId: _id, defaultUnit: unit as UnitType };
     return (
-      <Space size="middle">
+      <Space size={[4, 4]}>
         <Tooltip title={"Convert"}>
           <Button
             type="link"
@@ -141,17 +141,21 @@ const UserPage = () => {
       <Table
         className="custom-table"
         bordered
-        loading={{ spinning: loading }}
         rowKey="_id"
+        loading={{ spinning: loading }}
         dataSource={userList}
         tableLayout="fixed"
-        scroll={{ y: 460 }}
+        pagination={false}
+        scroll={{
+          x: 900,
+          y: "calc(100vh - 238px)",
+        }}
         locale={{
           emptyText: loading ? null : (
             <Empty
               image={Empty.PRESENTED_IMAGE_SIMPLE}
               style={{
-                height: 430,
+                minHeight: "40vh",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",
@@ -160,11 +164,19 @@ const UserPage = () => {
           ),
         }}
         columns={allColumn}
-        pagination={false}
       />
 
-      <div style={{ display: "flex", justifyContent: "flex-end", padding: 10 }}>
+      <div
+        style={{
+          display: "flex",
+          justifyContent: "flex-end",
+          flexWrap: "wrap",
+          gap: 8,
+          padding: "12px 8px",
+        }}
+      >
         <Pagination
+          responsive
           current={page}
           pageSize={pageSize}
           total={total}

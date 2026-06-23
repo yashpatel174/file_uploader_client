@@ -2,6 +2,7 @@ import { Button, Card, Input, Layout, Typography } from "antd";
 import { useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import logo from "../assets/logo.png";
 import type { AppDispatch, RootState } from "../config/store";
 import { loggingOut } from "../modules/auth/slice";
 import AddUser from "../modules/users/components/AddUser";
@@ -11,8 +12,8 @@ import AppSidebar from "./AppSidebar";
 const { Content } = Layout;
 
 function AppLayout() {
-  const [search, setSearch] = useState<string>("");
   const { Title } = Typography;
+  const [search, setSearch] = useState<string>("");
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const location = useLocation();
@@ -35,18 +36,28 @@ function AppLayout() {
         width: "100%",
       }}
     >
-      <Title level={5} style={{ margin: 0 }}>
-        File Size Access Limit
-      </Title>
-      {userPage && (
+      {logo ? (
         <>
+          <img style={{ margin: 0 }} src={logo} height={50} />
+        </>
+      ) : (
+        <>
+          <Title level={5} style={{ margin: 0 }}>
+            File Size Access Limit
+          </Title>
+        </>
+      )}
+      <>
+        {userPage && (
           <Input.Search
             placeholder="Search user..."
             disabled={user.length === 0}
             onChange={(e) => setSearch(e.target.value)}
             style={{ width: 500 }}
           />
-          <div>
+        )}
+        <div>
+          {userPage && (
             <Button
               style={{
                 margin: 0,
@@ -59,23 +70,29 @@ function AppLayout() {
             >
               Add
             </Button>
-            <Button
-              style={{ margin: 0, width: "80px", backgroundColor: "#5567ed" }}
-              type="primary"
-              onClick={handleLogout}
-            >
-              Logout
-            </Button>
-          </div>
-        </>
-      )}
+          )}
+          <Button
+            style={{ margin: 0, width: "80px", backgroundColor: "#5567ed" }}
+            type="primary"
+            onClick={handleLogout}
+          >
+            Logout
+          </Button>
+        </div>
+      </>
     </div>
   );
   return (
     <Layout style={{ height: "95vh", minHeight: 0 }}>
       <Card
         className="app-layout-card"
-        style={{ height: "100%", display: "flex", flexDirection: "column" }}
+        styles={{
+          body: {
+            height: "calc(100vh - 90px)",
+            display: "flex",
+            flexDirection: "column",
+          },
+        }}
         title={TableHeader}
       >
         <Layout style={{ height: "100%", backgroundColor: "#fff" }}>
@@ -87,7 +104,13 @@ function AppLayout() {
               overflow: "hidden",
             }}
           >
-            <div style={{ height: "100%", overflow: "hidden" }}>
+            <div
+              style={{
+                flex: 1,
+                minHeight: 0,
+                overflow: "hidden",
+              }}
+            >
               <Outlet context={{ search }} />
             </div>
           </Content>

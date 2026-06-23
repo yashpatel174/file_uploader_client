@@ -1,4 +1,4 @@
-export const username = [
+export const usernameValidation = [
   {
     required: true,
     message: "Username is required",
@@ -82,7 +82,7 @@ export const timeValidation = [
   },
 ];
 
-export const password = [
+export const passwordValidation = [
   {
     required: true,
     message: `Password is required`,
