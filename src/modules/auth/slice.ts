@@ -36,7 +36,7 @@ export const handleLogin = createAsyncThunk<
   { result: null; success: boolean },
   LoginFormValues,
   { rejectValue: string }
->("/register", async ({ userName, password }, { rejectWithValue }) => {
+>("/login", async ({ userName, password }, { rejectWithValue }) => {
   try {
     const res = await api.post(API_URL.LOGIN, { userName, password });
     message.success(res.data.message);
@@ -58,11 +58,10 @@ export const handleLogin = createAsyncThunk<
 });
 
 export const loggingOut = createAsyncThunk<{ result: null; success: boolean }>(
-  "/register",
+  "/logout",
   async (_, { rejectWithValue }) => {
     try {
-      const accessToken = localStorage.getItem("accessToken");
-      const res = await api.post(API_URL.LOGOUT, { accessToken });
+      const res = await api.post(API_URL.LOGOUT);
       message.success(res.data.message);
       localStorage.removeItem("accessToken");
       localStorage.removeItem("refreshToken");

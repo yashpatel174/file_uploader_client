@@ -202,20 +202,19 @@ const FileUpload = () => {
       }
       const { unit } = dropdown.find((d) => d.value === _id) as IDropdown;
       const formData = new FormData();
-      console.log("unit: ", unit);
       formData.append("file", uploadedFile as any);
       formData.append("_id", _id);
       formData.append("unit", unit);
       formData.append("platform", platform);
       formData.append("googleId", googleId as string);
       formData.append("googleSecretKey", googleSecretKey as string);
-      // dispatch(uploadFile(formData))
-      //   .then(async () => {
-      //     handleReset();
-      //     await dispatch(getAllUsers(paginationPayload));
-      //   })
-      //   .catch((err) => console.log("Error =>", err))
-      //   .finally(() => setAuthToken({ googleAuth: false, dropboxAuth: false }));
+      dispatch(uploadFile(formData))
+        .then(async () => {
+          handleReset();
+          await dispatch(getAllUsers(paginationPayload));
+        })
+        .catch((err) => console.log("Error =>", err))
+        .finally(() => setAuthToken({ googleAuth: false, dropboxAuth: false }));
     }
   };
 

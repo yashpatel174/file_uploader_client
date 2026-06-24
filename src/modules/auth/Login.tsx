@@ -23,7 +23,7 @@ const Login: React.FC = () => {
     await dispatch(handleLogin(values as LoginFormValues))
       .unwrap()
       .then((res) => {
-        if (res.success === true) navigate("/login");
+        if (res.success === true) navigate("/users");
       })
       .finally(() => {
         setLoginLoading(false);

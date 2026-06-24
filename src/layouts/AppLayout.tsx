@@ -19,7 +19,9 @@ function AppLayout() {
   const location = useLocation();
   const userPage = location.pathname === "/users";
 
-  const { user } = useSelector((state: RootState) => state.data);
+  const { user, fileLoading, deleteLoading } = useSelector(
+    (state: RootState) => state.data,
+  );
 
   const handleAddUser = () => dispatch(setOpenUserModel());
   const handleLogout = async () => {
@@ -72,9 +74,15 @@ function AppLayout() {
             </Button>
           )}
           <Button
-            style={{ margin: 0, width: "80px", backgroundColor: "#5567ed" }}
+            style={{
+              margin: 0,
+              width: "80px",
+              backgroundColor: "#5567ed",
+              color: "#fff",
+            }}
             type="primary"
             onClick={handleLogout}
+            disabled={fileLoading || deleteLoading}
           >
             Logout
           </Button>

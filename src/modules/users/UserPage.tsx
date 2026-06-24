@@ -151,7 +151,9 @@ const UserPage = () => {
           y: "calc(100vh - 238px)",
         }}
         locale={{
-          emptyText: loading ? null : (
+          emptyText: loading ? (
+            loading
+          ) : (
             <Empty
               image={Empty.PRESENTED_IMAGE_SIMPLE}
               style={{
