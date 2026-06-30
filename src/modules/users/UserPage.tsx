@@ -58,14 +58,15 @@ const UserPage = () => {
     return filteredData?.map((u, idx) => {
       const currentUnit: UnitType = userUnitMap[u._id] ?? u.unit ?? "size";
       const formattedData = dynamicData(u, currentUnit);
+      const { total, consumed, available } = formattedData;
 
       return {
         ...u,
         id: idx + 1,
         unitType: formattedData,
-        total: formattedData.total,
-        consumed: formattedData.consumed,
-        available: formattedData.available,
+        total,
+        consumed,
+        available,
         unit: currentUnit,
       };
     });
@@ -158,6 +159,7 @@ const UserPage = () => {
               image={Empty.PRESENTED_IMAGE_SIMPLE}
               style={{
                 minHeight: "40vh",
+                height: "calc(100vh - 335px)",
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",

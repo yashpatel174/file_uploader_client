@@ -91,8 +91,8 @@ const FileUpload = () => {
   }, [_id]);
 
   useEffect(() => {
-    if (dropdown?.length === 0) dispatch(getAllUsers(paginationPayload));
-  }, [dropdown]);
+    dropdown.length ? dropdown : [];
+  }, []);
 
   const props: UploadProps = {
     name: "file",

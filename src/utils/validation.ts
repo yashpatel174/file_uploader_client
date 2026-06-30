@@ -43,7 +43,11 @@ export const fileSize = [
     pattern: /^\S+$/,
     message: "Spaces are not allowed",
   },
-  { pattern: /^\d+$/, message: "Only numbers are allowed" },
+  { pattern: /^\d+(\.\d+)?$/, message: "Only numbers are allowed" }, //* ===/^\d+$/===
+  {
+    pattern: /^(?!\d+\.\d{3,}$).*$/,
+    message: "Only 2 decimal places are allowed",
+  },
 ];
 
 export const unitValidation = [
@@ -114,5 +118,20 @@ export const passwordValidation = [
   {
     pattern: /^.{8,16}$/,
     message: "Password must be between 8 and 16 characters",
+  },
+];
+
+export const emailValidation = [
+  {
+    pattern: /^(?!\s)(.*\S)?$/,
+    message: "Leading and trailing spaces are not allowed",
+  },
+  {
+    pattern: /^\S+$/,
+    message: "Spaces are not allowed",
+  },
+  {
+    pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+    message: "Please enter a valid email address",
   },
 ];

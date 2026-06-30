@@ -11,11 +11,17 @@ export const tableColumn = (
       title: "Index",
       dataIndex: "id",
       align: "center",
-      width: "10%",
+      width: "5%",
     },
     {
       title: "Username",
       dataIndex: "userName",
+      align: "center",
+      width: "15%",
+    },
+    {
+      title: "Email",
+      dataIndex: "email",
       align: "center",
       width: "20%",
     },

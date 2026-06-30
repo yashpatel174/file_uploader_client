@@ -131,11 +131,14 @@ const UserSlice = createSlice({
             unit: u.unit,
             googleAuth: u.googleAuthenticated,
             dropboxAuth: u.dropboxAuthenticated,
+            disabled: u[u.unit].total === u[u.unit].consumed,
           }));
         },
       )
       .addCase(getAllUsers.rejected, (state, action) => {
         state.loading = false;
+        state.user = [];
+        state.dropdown = [];
         state.error =
           action.payload ?? action.error.message ?? "Something went wrong";
       })
@@ -198,6 +201,7 @@ export const createUser = createAsyncThunk<
       unit: payload.unit,
       totalSizeBytes: Number(payload.totalSizeBytes) || 0,
       totalTime: Number(payload.totalTime) || 600,
+      email: payload.email,
     });
     return data;
   } catch (error) {

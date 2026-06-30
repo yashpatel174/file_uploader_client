@@ -18,6 +18,7 @@ import { paginationPayload } from "../../../utils/functions";
 import { toBytes } from "../../../utils/sizeConverter";
 import { parseDurationToSeconds } from "../../../utils/timeConverter";
 import {
+  emailValidation,
   fileSize,
   timeValidation,
   unitValidation,
@@ -37,8 +38,8 @@ const AddUser: React.FC = () => {
   };
 
   const handleSubmit = async (values: IUserCreate) => {
-    let { totalTime, totalSize, userName, unit, sizeUnit } = values;
-    let payload: any = { userName, unit };
+    let { totalTime, totalSize, userName, unit, sizeUnit, email } = values;
+    let payload: any = { userName, unit, email };
     if (unit === "time") {
       totalTime = totalTime = totalTime
         ? parseDurationToSeconds(totalTime).totalSeconds
@@ -64,6 +65,7 @@ const AddUser: React.FC = () => {
   };
 
   const userName = Form.useWatch("userName", form);
+  const email = Form.useWatch("email", form);
   const fileSizelimit = Form.useWatch("totalSize", form);
   const selectedUnit = Form.useWatch("sizeUnit", form);
   const unit = Form.useWatch("unit", form);
@@ -104,6 +106,20 @@ const AddUser: React.FC = () => {
               <Input />
             </Form.Item>
           </Col>
+
+          <Col span={12}>
+            <Form.Item
+              label={"Email"}
+              name="email"
+              validateFirst
+              required
+              rules={emailValidation}
+            >
+              <Input />
+            </Form.Item>
+          </Col>
+        </Row>
+        <Row gutter={16}>
           <Col span={12}>
             <Form.Item
               label={"Unit"}
@@ -115,8 +131,6 @@ const AddUser: React.FC = () => {
               <Radio.Group block options={unitOptions} />
             </Form.Item>
           </Col>
-        </Row>
-        <Row gutter={16}>
           {unit === "time" ? (
             <>
               <Col span={9}>
@@ -133,7 +147,7 @@ const AddUser: React.FC = () => {
             </>
           ) : (
             <>
-              <Col span={9}>
+              <Col span={7}>
                 <Form.Item
                   label={"Total Size"}
                   name="totalSize"
@@ -171,7 +185,7 @@ const AddUser: React.FC = () => {
                 type="primary"
                 onClick={() => form.submit()}
                 loading={userLoading}
-                disabled={!userName || hasErrors || required}
+                disabled={!userName || !email || hasErrors || required}
               >
                 Create
               </Button>

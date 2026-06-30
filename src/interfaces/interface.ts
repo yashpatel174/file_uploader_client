@@ -1,5 +1,10 @@
 export type UnitType = "size" | "time";
 
+interface IUnitUsage {
+  total: number;
+  consumed: number;
+}
+
 export interface IUsage<T = number> {
   total: T;
   consumed: T;
@@ -119,6 +124,8 @@ export interface IUserDropdown extends IUserBase {
   unit: UnitType;
   googleAuthenticated: boolean;
   dropboxAuthenticated: boolean;
+  size: IUnitUsage;
+  time: IUnitUsage;
 }
 
 export interface IUserResponse {
@@ -166,6 +173,7 @@ export type IUserCreate = IApiMessage & {
   totalTime?: number;
   totalSize?: number;
   sizeUnit?: string;
+  email: string;
 };
 
 export interface IUserSelection {
