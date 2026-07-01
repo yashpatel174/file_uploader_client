@@ -65,7 +65,12 @@ const EditModel: React.FC<IUnitProps> = ({ unit = "KB" }) => {
   const handleUnitChange = (e: RadioChangeEvent) => {
     const value: UnitType = e.target.value;
     const data = dynamicData(userData as any, value);
-    form.setFieldsValue(data);
+    if (value === "size") {
+      form.resetFields(["newTime"]);
+    } else {
+      form.resetFields(["newSize", "newUnit"]);
+    }
+    form.setFieldsValue({ ...data, unit: value });
   };
 
   const handleSubmit = async (values: EditFormValues) => {
@@ -195,6 +200,7 @@ const EditModel: React.FC<IUnitProps> = ({ unit = "KB" }) => {
                     name="newSize"
                     dependencies={["opearation", "unit", "newUnit"]}
                     validateFirst
+                    preserve={false}
                     rules={[
                       { required: true, message: "New size is required" },
                       {
@@ -254,6 +260,7 @@ const EditModel: React.FC<IUnitProps> = ({ unit = "KB" }) => {
                     dependencies={["opearation"]}
                     validateFirst
                     required
+                    preserve={false}
                     rules={[
                       ...timeValidation,
                       {

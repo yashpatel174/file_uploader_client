@@ -90,6 +90,7 @@ const UserSlice = createSlice({
           ? {
               ...item,
               unit: newUnit,
+              disabled: item[newUnit].total === item[newUnit].consumed,
             }
           : item,
       );
@@ -125,14 +126,19 @@ const UserSlice = createSlice({
           state.totalPages = totalPages;
           state.limit = limit;
           state.user = transformedUsers;
-          state.dropdown = dropdown?.map((u) => ({
-            label: u.userName,
-            value: u._id,
-            unit: u.unit,
-            googleAuth: u.googleAuthenticated,
-            dropboxAuth: u.dropboxAuthenticated,
-            disabled: u[u.unit].total === u[u.unit].consumed,
-          }));
+          state.dropdown = dropdown?.map((u) => {
+            const selectedUnit = state.userUnitMap[u._id] ?? u.unit;
+            return {
+              label: u.userName,
+              value: u._id,
+              unit: selectedUnit,
+              size: u.size,
+              time: u.time,
+              googleAuth: u.googleAuthenticated,
+              dropboxAuth: u.dropboxAuthenticated,
+              disabled: u[selectedUnit].total === u[selectedUnit].consumed,
+            };
+          });
         },
       )
       .addCase(getAllUsers.rejected, (state, action) => {

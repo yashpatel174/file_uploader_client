@@ -8,9 +8,12 @@ const PageNotFound = () => {
     const accessToken = localStorage.getItem("accessToken");
 
     const timer = setTimeout(() => {
-      accessToken
-        ? window.history.back()
-        : navigate("/login", { replace: true });
+      if (accessToken) {
+        window.history.back();
+        return;
+      }
+
+      navigate("/login", { replace: true });
     }, 2000);
 
     return () => clearTimeout(timer);

@@ -3,14 +3,11 @@ import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import type { AppDispatch } from "../../config/store";
+import type { LoginFormValues } from "../../interfaces/interface";
 import { passwordValidation, usernameValidation } from "../../utils/validation";
-import { handleLogin } from "./slice";
+import { login } from "./slice";
 
 const { Title } = Typography;
-export interface LoginFormValues {
-  userName: string;
-  password: string;
-}
 
 const Login: React.FC = () => {
   const [form] = Form.useForm<LoginFormValues>();
@@ -20,14 +17,12 @@ const Login: React.FC = () => {
 
   const handleFinish = async (values: LoginFormValues) => {
     setLoginLoading(true);
-    await dispatch(handleLogin(values as LoginFormValues))
+    await dispatch(login(values as LoginFormValues))
       .unwrap()
       .then((res) => {
-        if (res.success === true) navigate("/users");
+        if (res.success) navigate("/users");
       })
-      .finally(() => {
-        setLoginLoading(false);
-      });
+      .finally(() => setLoginLoading(false));
   };
 
   const userName = Form.useWatch("userName", form);

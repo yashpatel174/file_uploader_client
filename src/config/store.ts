@@ -1,7 +1,7 @@
 import {
   configureStore,
-  type Action,
   type ThunkAction,
+  type UnknownAction,
 } from "@reduxjs/toolkit";
 import dataReducer from "../modules/users/slice";
 import authReducer from "../modules/auth/slice";
@@ -21,5 +21,5 @@ export type AppThunk<ReturnType = void> = ThunkAction<
   ReturnType,
   RootState,
   unknown,
-  Action<any>
+  UnknownAction
 >;

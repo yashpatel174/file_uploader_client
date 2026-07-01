@@ -15,7 +15,11 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (
+      error.response?.status === 401 &&
+      !originalRequest._retry &&
+      !originalRequest.url?.includes("/admin/logout")
+    ) {
       originalRequest._retry = true;
       const refreshToken = localStorage.getItem("refreshToken");
       const { data } = await api.post("/auth/refresh", {

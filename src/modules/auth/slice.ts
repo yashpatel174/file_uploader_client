@@ -7,7 +7,7 @@ import { message } from "antd";
 import axios from "axios";
 import api from "../../utils/intercepter";
 import { API_URL } from "../../utils/url";
-import type { LoginFormValues } from "./Login";
+import type { LoginFormValues } from "../../interfaces/interface";
 
 interface IAuthentication {
   accessToken: string | null;
@@ -32,11 +32,11 @@ const AuthSlice = createSlice({
   },
 });
 
-export const handleLogin = createAsyncThunk<
+export const login = createAsyncThunk<
   { result: null; success: boolean },
   LoginFormValues,
   { rejectValue: string }
->("/login", async ({ userName, password }, { rejectWithValue }) => {
+>("auth/login", async ({ userName, password }, { rejectWithValue }) => {
   try {
     const res = await api.post(API_URL.LOGIN, { userName, password });
     message.success(res.data.message);
@@ -57,8 +57,8 @@ export const handleLogin = createAsyncThunk<
   }
 });
 
-export const loggingOut = createAsyncThunk<{ result: null; success: boolean }>(
-  "/logout",
+export const logout = createAsyncThunk<{ result: null; success: boolean }>(
+  "auth/logout",
   async (_, { rejectWithValue }) => {
     try {
       const res = await api.post(API_URL.LOGOUT);

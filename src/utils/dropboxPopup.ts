@@ -8,7 +8,7 @@ export const openDropboxPopup = async (
   _id: string,
 ) => {
   const { data } = await axios.post(
-    "http://localhost:5003/api/dropbox/auth-url",
+    `${import.meta.env.VITE_API_BASE_URL}/api/dropbox/auth-url`,
     {
       appKey,
     },

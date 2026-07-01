@@ -1,6 +1,6 @@
 export type UnitType = "size" | "time";
 
-interface IUnitUsage {
+export interface IUnitUsage {
   total: number;
   consumed: number;
 }
@@ -17,6 +17,11 @@ export type IFormattedUsage = IUsage<string>;
 export interface IUserBase {
   _id: string;
   userName: string;
+}
+
+export interface LoginFormValues {
+  userName: string;
+  password: string;
 }
 
 export interface IUserQuota<T = number | string> {
@@ -113,6 +118,9 @@ export interface IDropdown extends IAuthProviders {
   label: string;
   value: string;
   unit: UnitType;
+  size: IUnitUsage;
+  time: IUnitUsage;
+  disabled: boolean;
 }
 
 export interface IPaginatedResponse<T> {

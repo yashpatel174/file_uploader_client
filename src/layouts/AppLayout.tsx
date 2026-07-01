@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import logo from "../assets/logo.png";
 import type { AppDispatch, RootState } from "../config/store";
-import { loggingOut } from "../modules/auth/slice";
+import { logout } from "../modules/auth/slice";
 import AddUser from "../modules/users/components/AddUser";
 import { setOpenUserModel } from "../modules/users/slice";
 import AppSidebar from "./AppSidebar";
@@ -25,8 +25,8 @@ function AppLayout() {
 
   const handleAddUser = () => dispatch(setOpenUserModel());
   const handleLogout = async () => {
-    const { success } = await dispatch(loggingOut()).unwrap();
-    if (success === true) await navigate("/login");
+    const { success } = await dispatch(logout()).unwrap();
+    if (success) await navigate("/login");
   };
 
   const TableHeader = (
@@ -40,7 +40,12 @@ function AppLayout() {
     >
       {logo ? (
         <>
-          <img style={{ margin: 0 }} src={logo} height={50} />
+          <img
+            style={{ margin: 0 }}
+            src={logo}
+            height={50}
+            alt={"File Size Access Limit"}
+          />
         </>
       ) : (
         <>
