@@ -41,9 +41,9 @@ export const buildPayload = (values: any, userInfo: IUserData): IEditData => {
     : parseDurationToSeconds(values.newTime).totalSeconds;
 
   const config: IBaseOperation = {
-    available: Number(userInfo[unit as UnitType].available) || 0,
     total: Number(userInfo[unit as UnitType].total) || 0,
     consumed: Number(userInfo[unit as UnitType].consumed) || 0,
+    available: Number(userInfo[unit as UnitType].available) || 0,
     incomingValue,
     availableError: isSize
       ? "New value must be lesser than available size"

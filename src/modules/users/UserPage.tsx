@@ -4,19 +4,19 @@ import {
   EyeOutlined,
   SwapOutlined,
 } from "@ant-design/icons";
-import { Button, Empty, Pagination, Space, Table, Tooltip } from "antd";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useOutletContext } from "react-router-dom";
-import type { AppDispatch, RootState } from "../../config/store";
+import type { AppDispatch, RootState } from "@src/config/store";
 import type {
   ISelectedUser,
   IUserTable,
   SizeUnit,
   UnitType,
-} from "../../interfaces/interface";
-import { tableColumn } from "../../utils/column";
-import { dynamicData } from "../../utils/functions";
+} from "@src/interfaces/interface";
+import { tableColumn } from "@src/utils/column";
+import { dynamicData } from "@src/utils/functions";
+import { Button, Empty, Pagination, Space, Table, Tooltip } from "antd";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useOutletContext } from "react-router-dom";
 import DeleteModel from "./components/DeleteModel";
 import EditModel from "./components/EditModel";
 import UserData from "./components/UserData";
@@ -43,12 +43,20 @@ const UserPage = () => {
 
   const { search } = useOutletContext<{ search: string }>();
 
-  const { user, loading, total, fileModel, isModelOpen, userUnitMap } =
-    useSelector((state: RootState) => state.data);
+  const {
+    user,
+    loading,
+    total,
+    fileModel,
+    isModelOpen,
+    userUnitMap,
+    dropdown,
+  } = useSelector((state: RootState) => state.data);
 
   useEffect(() => {
+    if (dropdown.length > 0) return;
     dispatch(getAllUsers({ page, limit: pageSize }));
-  }, [dispatch, page, pageSize]);
+  }, [dispatch, page, pageSize, dropdown.length]);
 
   const userList = useMemo(() => {
     const filteredData = user.filter((u) =>
@@ -186,6 +194,11 @@ const UserPage = () => {
           total={total}
           showSizeChanger
           onChange={(newPage, newPageSize) => {
+            const metaPage = JSON.stringify({
+              page: newPage,
+              limit: newPageSize,
+            });
+            localStorage.setItem("page", metaPage);
             setPage(newPage);
             setPageSize(newPageSize);
           }}

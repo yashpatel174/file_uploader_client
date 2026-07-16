@@ -1,5 +1,10 @@
 import { UploadOutlined } from "@ant-design/icons";
 import { useGoogleLogin } from "@react-oauth/google";
+import type { AppDispatch, RootState } from "@src/config/store";
+import type { IAuthProviders, IDropdown } from "@src/interfaces/interface";
+import { openDropboxPopup } from "@src/utils/dropboxPopup";
+import { paginationPayload } from "@src/utils/functions";
+import { fileUploadPlatform } from "@src/utils/menuItems";
 import {
   Button,
   Col,
@@ -14,11 +19,6 @@ import {
 } from "antd";
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import type { AppDispatch, RootState } from "../../config/store";
-import type { IAuthProviders, IDropdown } from "../../interfaces/interface";
-import { openDropboxPopup } from "../../utils/dropboxPopup";
-import { paginationPayload } from "../../utils/functions";
-import { fileUploadPlatform } from "../../utils/menuItems";
 import {
   authConnection,
   getAllUsers,
@@ -43,9 +43,9 @@ const FileUpload = () => {
   const [form] = Form.useForm();
   const dispatch = useDispatch<AppDispatch>();
   const [file, setFile] = useState<boolean>(false);
+  const [openModel, setOpenModel] = useState<boolean>(false);
   const [authLoading, setAuthLoading] = useState<boolean>(false);
   const [instructionOf, setInstructionOf] = useState<IPlatform>(null);
-  const [openModel, setOpenModel] = useState<boolean>(false);
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
   const { dropdown, fileLoading } = useSelector(
     (state: RootState) => state.data,
@@ -91,8 +91,11 @@ const FileUpload = () => {
   }, [_id]);
 
   useEffect(() => {
-    dropdown.length ? dropdown : [];
-  }, []);
+    if (dropdown.length > 0) return;
+    const stored = localStorage.getItem("page");
+    const pagination = stored ? JSON.parse(stored) : { page: 1, limit: 10 };
+    dispatch(getAllUsers(pagination));
+  }, [dispatch, dropdown.length]);
 
   const props: UploadProps = {
     name: "file",
@@ -144,19 +147,23 @@ const FileUpload = () => {
           clientId: values.googleId,
           clientSecretKey: values.googleSecretKey,
         };
-        await dispatch(googleConnected(payload));
-        const { unit } = dropdown.find((d) => d.value === _id) as IDropdown;
-        const formData = new FormData();
-        formData.append("file", uploadedFile as any);
-        formData.append("_id", values._id);
-        formData.append("unit", unit);
-        formData.append("platform", values.platform);
-        dispatch(uploadFile(formData))
-          .then(async () => {
-            handleReset();
-            await dispatch(getAllUsers(paginationPayload));
-          })
-          .catch((err) => console.log("Error =>", err));
+        await dispatch(googleConnected(payload as any)).then((res) => {
+          if (res.payload.success) {
+            const { unit } = dropdown.find((d) => d.value === _id) as IDropdown;
+            const formData = new FormData();
+            formData.append("file", uploadedFile as any);
+            formData.append("_id", values._id);
+            formData.append("unit", unit);
+            formData.append("platform", values.platform);
+            dispatch(uploadFile(formData))
+              .then(async () => {
+                setAuthToken({ ...authToken, googleAuth: false });
+                handleReset();
+                await dispatch(getAllUsers(paginationPayload));
+              })
+              .catch((err) => console.log("Error =>", err));
+          }
+        });
       } catch (e: any) {
         message.error(e || "Google connect failed");
       }
@@ -182,7 +189,7 @@ const FileUpload = () => {
       dispatch(uploadFile(formData))
         .then(async () => {
           setAuthToken({ ...authToken, dropboxAuth: false });
-          handleReset();
+          await handleReset();
           await dispatch(getAllUsers(paginationPayload));
         })
         .catch((err) => console.log("Error =>", err));
@@ -233,6 +240,9 @@ const FileUpload = () => {
       : !dropboxAppKey || !dropboxSecretKey);
 
   const isDisable = googleDisabled || dropboxDisabled;
+  const disableAuthButton =
+    (platform === "dropbox" && authToken.dropboxAuth) ||
+    (platform === "drive" && authToken.googleAuth);
 
   const handleOpenModal = () => setOpenModel(true);
   return (
@@ -412,6 +422,7 @@ const FileUpload = () => {
                     type="primary"
                     onClick={handleAuthConnection}
                     loading={authLoading}
+                    disabled={disableAuthButton}
                   >
                     {(platform === "dropbox" && !authToken.dropboxAuth) ||
                     (platform === "drive" && !authToken.googleAuth)

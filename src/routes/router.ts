@@ -23,10 +23,6 @@ export const router = createBrowserRouter([
             element: createElement(Navigate, { to: "/users", replace: true }),
           },
           {
-            path: "",
-            element: createElement(UserPage),
-          },
-          {
             path: "users",
             element: createElement(UserPage),
           },
@@ -37,6 +33,14 @@ export const router = createBrowserRouter([
           {
             path: "/dropbox/callback",
             element: createElement(DropboxCallback),
+          },
+          {
+            path: "/file-list",
+            element: createElement(UserPage),
+          },
+          {
+            path: "/fail-reports",
+            element: createElement(UserPage),
           },
         ],
       },

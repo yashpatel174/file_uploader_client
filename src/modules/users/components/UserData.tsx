@@ -1,10 +1,10 @@
 import { LeftOutlined, LoadingOutlined } from "@ant-design/icons";
+import type { AppDispatch, RootState } from "@src/config/store";
+import type { IUserDataProps } from "@src/interfaces/interface";
 import { Button, Col, Modal, Row, Space, Spin } from "antd";
 import Text from "antd/es/typography/Text";
 import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import type { AppDispatch, RootState } from "../../../config/store";
-import type { IUserDataProps } from "../../../interfaces/interface";
 import {
   getAllFiles,
   getAudioPlayed,
@@ -67,7 +67,8 @@ const UserData: React.FC<IUserDataProps> = ({ userData }) => {
         {audio?.map((aud, idx) => (
           <React.Fragment key={idx}>
             <Col
-              span={10}
+              xs={24}
+              sm={10}
               style={{
                 display: "flex",
                 alignItems: "center",
@@ -79,7 +80,8 @@ const UserData: React.FC<IUserDataProps> = ({ userData }) => {
               </Space>
             </Col>
             <Col
-              span={14}
+              xs={24}
+              sm={14}
               style={{
                 paddingRight: "10px",
                 ...(audioUI.audioId !== aud.id && {

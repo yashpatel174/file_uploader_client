@@ -1,10 +1,10 @@
+import type { AppDispatch } from "@src/config/store";
+import type { LoginFormValues } from "@src/interfaces/interface";
+import { passwordValidation, usernameValidation } from "@src/utils/validation";
 import { Button, Card, Col, Form, Input, Row, Typography } from "antd";
 import React, { useState } from "react";
 import { useDispatch } from "react-redux";
 import { useNavigate } from "react-router-dom";
-import type { AppDispatch } from "../../config/store";
-import type { LoginFormValues } from "../../interfaces/interface";
-import { passwordValidation, usernameValidation } from "../../utils/validation";
 import { login } from "./slice";
 
 const { Title } = Typography;

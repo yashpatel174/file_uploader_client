@@ -1,6 +1,6 @@
 import { Modal } from "antd";
 import type { Dispatch, SetStateAction } from "react";
-import { instruction } from "../../../utils/instruction";
+import { instruction } from "@src/utils/instruction";
 import type { IPlatform } from "../FileUpload";
 
 interface IProp {

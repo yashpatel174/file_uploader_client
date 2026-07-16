@@ -120,7 +120,6 @@ export interface IDropdown extends IAuthProviders {
   unit: UnitType;
   size: IUnitUsage;
   time: IUnitUsage;
-  disabled: boolean;
 }
 
 export interface IPaginatedResponse<T> {

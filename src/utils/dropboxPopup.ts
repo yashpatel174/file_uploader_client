@@ -38,8 +38,14 @@ export const openDropboxPopup = async (
           resolve(tokenResponse.data);
         }
       } catch (error) {
-        console.log("error in the catch block: ", (error as Error).message);
+        let errorMessage = "";
+        if (axios.isAxiosError(error)) {
+          errorMessage = error.response?.data?.message || error.message;
+        } else if (error instanceof Error) {
+          errorMessage = error.message;
+        }
         reject(error);
+        message.error(errorMessage);
       }
     };
 

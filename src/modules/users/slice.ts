@@ -3,9 +3,6 @@ import {
   createSlice,
   type PayloadAction,
 } from "@reduxjs/toolkit";
-import { message } from "antd";
-import axios from "axios";
-import type { AppThunk } from "../../config/store";
 import type {
   IApiMessage,
   IAudioInfo,
@@ -16,9 +13,11 @@ import type {
   IUserResponse,
   IUserState,
   UnitType,
-} from "../../interfaces/interface";
-import api from "../../utils/intercepter";
-import { API_URL } from "../../utils/url";
+} from "@src/interfaces/interface";
+import api from "@src/utils/intercepter";
+import { API_URL } from "@src/utils/url";
+import { message } from "antd";
+import axios from "axios";
 
 const initialState: IUserState = {
   user: [],
@@ -90,7 +89,6 @@ const UserSlice = createSlice({
           ? {
               ...item,
               unit: newUnit,
-              disabled: item[newUnit].total === item[newUnit].consumed,
             }
           : item,
       );
@@ -136,7 +134,6 @@ const UserSlice = createSlice({
               time: u.time,
               googleAuth: u.googleAuthenticated,
               dropboxAuth: u.dropboxAuthenticated,
-              disabled: u[selectedUnit].total === u[selectedUnit].consumed,
             };
           });
         },
@@ -200,7 +197,7 @@ export const createUser = createAsyncThunk<
   IUserCreate,
   IUserCreate,
   { rejectValue: string }
->("/create", async (payload, { rejectWithValue }) => {
+>("user/create", async (payload, { rejectWithValue }) => {
   try {
     const { data } = await api.post(API_URL.CREATE_USER, {
       userName: payload.userName,
@@ -243,7 +240,7 @@ export const updateUserInfo = createAsyncThunk<
   IUser,
   IEditData,
   { rejectValue: string }
->("/update", async ({ userId, unit, newValue }) => {
+>("user/update", async ({ userId, unit, newValue }) => {
   try {
     if (!userId) message.error("User ID is required");
     const res = await api.patch(API_URL.UPDATE_FILE_SIZE_LIMIT(userId), {
@@ -263,7 +260,7 @@ export const uploadFile = createAsyncThunk<
   IApiMessage,
   FormData,
   { rejectValue: string }
->("/file/upload", async (payload) => {
+>("file/upload", async (payload) => {
   try {
     const res = await api.post(API_URL.FILE_UPLOAD, payload);
     message.success(res.data.message);
@@ -296,22 +293,32 @@ export const getAllFiles = createAsyncThunk<
   }
 });
 
-export const googleConnected =
-  (data: any): AppThunk<any> =>
-  async () => {
-    try {
-      const response = await api.post(API_URL.GOOGLE.GOOGLE_CONNECT, data);
-      return Promise.resolve(response.data);
-    } catch (error: any) {
-      return Promise.reject(error.response?.data || error.message);
+export const googleConnected = createAsyncThunk<
+  any,
+  { data: any },
+  { rejectValue: string }
+>("google/auth", async (data, { rejectWithValue }) => {
+  try {
+    const response = await api.post(API_URL.GOOGLE.GOOGLE_CONNECT, data);
+    return Promise.resolve(response.data);
+  } catch (error) {
+    let errorMessage = "";
+    if (axios.isAxiosError(error)) {
+      errorMessage = error.response?.data?.message || error.message;
+    } else if (error instanceof Error) {
+      errorMessage = error.message;
     }
-  };
+
+    message.error(errorMessage);
+    return rejectWithValue(errorMessage);
+  }
+});
 
 export const getAudioPlayed = createAsyncThunk<
   IAudioInfo[],
   string,
   { rejectValue: string }
->("/play/audio", async (_id: string, { rejectWithValue }) => {
+>("play/audio", async (_id: string, { rejectWithValue }) => {
   try {
     const res = await api.get(API_URL.PLAY_AUDIO.PLAY(_id));
     return res.data;
@@ -332,7 +339,7 @@ export const deleteUser = createAsyncThunk<
   any,
   string,
   { rejectValue: string }
->("/delete", async (_id: string, { rejectWithValue }) => {
+>("user/delete", async (_id: string, { rejectWithValue }) => {
   try {
     const res = await api.delete(API_URL.DELETE_USER(_id));
     message.success(res.data.message);
@@ -354,7 +361,7 @@ export const authConnection = createAsyncThunk<
   { result: string },
   { platform: string; _id: string },
   { rejectValue: string }
->("/auth", async ({ platform, _id }, { rejectWithValue }) => {
+>("connection/auth", async ({ platform, _id }, { rejectWithValue }) => {
   try {
     const res = await api.get(API_URL.AUTH_CONNECTION(platform, _id));
     message.success(res.data.message);

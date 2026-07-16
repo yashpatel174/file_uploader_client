@@ -1,3 +1,16 @@
+import type { AppDispatch, RootState } from "@src/config/store";
+import type { IUserCreate, SizeUnit } from "@src/interfaces/interface";
+import { fileSizeOptions, unitOptions } from "@src/utils/column";
+import { paginationPayload } from "@src/utils/functions";
+import { toBytes } from "@src/utils/sizeConverter";
+import { parseDurationToSeconds } from "@src/utils/timeConverter";
+import {
+  emailValidation,
+  fileSize,
+  timeValidation,
+  unitValidation,
+  usernameValidation,
+} from "@src/utils/validation";
 import {
   Button,
   Col,
@@ -11,19 +24,6 @@ import {
   Space,
 } from "antd";
 import { useDispatch, useSelector } from "react-redux";
-import type { AppDispatch, RootState } from "../../../config/store";
-import type { IUserCreate, SizeUnit } from "../../../interfaces/interface";
-import { fileSizeOptions, unitOptions } from "../../../utils/column";
-import { paginationPayload } from "../../../utils/functions";
-import { toBytes } from "../../../utils/sizeConverter";
-import { parseDurationToSeconds } from "../../../utils/timeConverter";
-import {
-  emailValidation,
-  fileSize,
-  timeValidation,
-  unitValidation,
-  usernameValidation,
-} from "../../../utils/validation";
 import { createUser, getAllUsers, setCloseUserModel } from "../slice";
 
 const AddUser: React.FC = () => {
@@ -95,7 +95,7 @@ const AddUser: React.FC = () => {
         }}
       >
         <Row gutter={16}>
-          <Col span={12}>
+          <Col xs={24} sm={12}>
             <Form.Item
               label={"Username"}
               name="userName"
@@ -107,7 +107,7 @@ const AddUser: React.FC = () => {
             </Form.Item>
           </Col>
 
-          <Col span={12}>
+          <Col xs={24} sm={12}>
             <Form.Item
               label={"Email"}
               name="email"
@@ -120,7 +120,7 @@ const AddUser: React.FC = () => {
           </Col>
         </Row>
         <Row gutter={16}>
-          <Col span={12}>
+          <Col xs={15} sm={12}>
             <Form.Item
               label={"Unit"}
               name="unit"
@@ -133,7 +133,7 @@ const AddUser: React.FC = () => {
           </Col>
           {unit === "time" ? (
             <>
-              <Col span={9}>
+              <Col xs={9} sm={9}>
                 <Form.Item
                   label={"Total Minutes"}
                   name="totalTime"
@@ -147,7 +147,7 @@ const AddUser: React.FC = () => {
             </>
           ) : (
             <>
-              <Col span={7}>
+              <Col xs={12} sm={7}>
                 <Form.Item
                   label={"Total Size"}
                   name="totalSize"
@@ -158,7 +158,7 @@ const AddUser: React.FC = () => {
                   <Input />
                 </Form.Item>
               </Col>
-              <Col span={5}>
+              <Col xs={12} sm={5}>
                 <Form.Item label={"Size Unit"} name="sizeUnit" required>
                   <Select
                     suffixIcon={null}

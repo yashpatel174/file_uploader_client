@@ -1,3 +1,21 @@
+import type { AppDispatch, RootState } from "@src/config/store";
+import type {
+  EditFormValues,
+  IUnitProps,
+  IUserData,
+  SizeUnit,
+  UnitType,
+} from "@src/interfaces/interface";
+import { fileSizeOptions, unitOptions } from "@src/utils/column";
+import {
+  buildPayload,
+  dynamicData,
+  paginationPayload,
+} from "@src/utils/functions";
+import { getStorageStatus, getUsagePercentage } from "@src/utils/menuItems";
+import { toBytes } from "@src/utils/sizeConverter";
+import { parseDurationToSeconds } from "@src/utils/timeConverter";
+import { timeValidation, unitValidation } from "@src/utils/validation";
 import {
   Button,
   Col,
@@ -16,24 +34,6 @@ import {
 } from "antd";
 import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import type { AppDispatch, RootState } from "../../../config/store";
-import type {
-  EditFormValues,
-  IUnitProps,
-  IUserData,
-  SizeUnit,
-  UnitType,
-} from "../../../interfaces/interface";
-import { fileSizeOptions, unitOptions } from "../../../utils/column";
-import {
-  buildPayload,
-  dynamicData,
-  paginationPayload,
-} from "../../../utils/functions";
-import { getStorageStatus, getUsagePercentage } from "../../../utils/menuItems";
-import { toBytes } from "../../../utils/sizeConverter";
-import { parseDurationToSeconds } from "../../../utils/timeConverter";
-import { timeValidation, unitValidation } from "../../../utils/validation";
 import { getAllUsers, setCloseModel, updateUserInfo } from "../slice";
 
 const EditModel: React.FC<IUnitProps> = ({ unit = "KB" }) => {
@@ -113,9 +113,6 @@ const EditModel: React.FC<IUnitProps> = ({ unit = "KB" }) => {
     form.validateFields(["newSize", "newTime"]);
   }, [operator, toggleUnit, form]);
 
-  // const required =
-  //   unit === "size" ? !fileSizelimit || !selectedUnit : !givenTime;
-
   return (
     <>
       <Modal
@@ -138,7 +135,7 @@ const EditModel: React.FC<IUnitProps> = ({ unit = "KB" }) => {
         >
           {/* Storage Details */}
           <Row gutter={[16, 0]}>
-            <Col span={12}>
+            <Col xs={15} sm={12}>
               <Form.Item
                 label={"Unit"}
                 name="unit"
@@ -153,7 +150,7 @@ const EditModel: React.FC<IUnitProps> = ({ unit = "KB" }) => {
                 />
               </Form.Item>
             </Col>
-            <Col span={12}>
+            <Col xs={24} sm={12}>
               <Form.Item label={<Tag color={color}>{status}</Tag>}>
                 <Progress percent={percent} strokeColor={color} />
               </Form.Item>
@@ -181,7 +178,7 @@ const EditModel: React.FC<IUnitProps> = ({ unit = "KB" }) => {
 
           {/* Update Controls */}
           <Row gutter={[16, 0]}>
-            <Col span={10}>
+            <Col xs={24} sm={10}>
               <Form.Item label={"Adjustment Type"} name="opearation">
                 <Segmented
                   block
@@ -194,7 +191,7 @@ const EditModel: React.FC<IUnitProps> = ({ unit = "KB" }) => {
             </Col>
             {toggleUnit === "size" ? (
               <>
-                <Col span={8}>
+                <Col xs={12} sm={8}>
                   <Form.Item
                     label={"New Size"}
                     name="newSize"
@@ -240,7 +237,7 @@ const EditModel: React.FC<IUnitProps> = ({ unit = "KB" }) => {
                   </Form.Item>
                 </Col>
 
-                <Col span={6}>
+                <Col xs={12} sm={6}>
                   <Form.Item label={"New Size Unit"} name="newUnit">
                     <Select
                       suffixIcon={null}
@@ -253,7 +250,7 @@ const EditModel: React.FC<IUnitProps> = ({ unit = "KB" }) => {
               </>
             ) : (
               <>
-                <Col span={14}>
+                <Col xs={24} sm={14}>
                   <Form.Item
                     label={"New Minutes"}
                     name="newTime"

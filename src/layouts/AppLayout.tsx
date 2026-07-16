@@ -17,7 +17,8 @@ function AppLayout() {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const location = useLocation();
-  const userPage = location.pathname === "/users";
+  const userPage =
+    location.pathname === "/users" || location.pathname === "/file-list";
 
   const { user, fileLoading, deleteLoading } = useSelector(
     (state: RootState) => state.data,
@@ -64,7 +65,7 @@ function AppLayout() {
           />
         )}
         <div>
-          {userPage && (
+          {location.pathname === "/users" && (
             <Button
               style={{
                 margin: 0,

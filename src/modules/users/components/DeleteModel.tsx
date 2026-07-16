@@ -1,6 +1,6 @@
+import type { AppDispatch, RootState } from "@src/config/store";
 import { Modal } from "antd";
 import { useDispatch, useSelector } from "react-redux";
-import type { AppDispatch, RootState } from "../../../config/store";
 import { deleteUser, getAllUsers, setDeleteModel } from "../slice";
 
 interface DeleteModelProps {

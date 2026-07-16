@@ -3,8 +3,8 @@ import {
   type ThunkAction,
   type UnknownAction,
 } from "@reduxjs/toolkit";
-import dataReducer from "../modules/users/slice";
 import authReducer from "../modules/auth/slice";
+import dataReducer from "../modules/users/slice";
 
 export const store = configureStore({
   reducer: {
