@@ -330,7 +330,7 @@ export const getAudioPlayed = createAsyncThunk<
       errorMessage = error.message;
     }
 
-    message.error(errorMessage);
+    // message.error(errorMessage);
     return rejectWithValue(errorMessage);
   }
 });

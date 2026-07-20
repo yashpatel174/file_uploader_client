@@ -1,14 +1,16 @@
 import { createElement } from "react";
 import { createBrowserRouter, Navigate } from "react-router-dom";
 
+import FailReport from "@src/modules/failReport/FailReport";
+import FileList from "@src/modules/fileList/FileList";
 import AppLayout from "../layouts/AppLayout";
-import UserPage from "../modules/users/UserPage";
-import FileUpload from "../modules/files/FileUpload";
-import DropboxCallback from "../modules/files/components/DropboxCallback";
 import Login from "../modules/auth/Login";
 import PageNotFound from "../modules/auth/components/PageNotFound";
 import ProtectedRoute from "../modules/auth/components/ProtectedRoute";
 import PublicRoute from "../modules/auth/components/PublicRoute";
+import FileUpload from "../modules/files/FileUpload";
+import DropboxCallback from "../modules/files/components/DropboxCallback";
+import UserPage from "../modules/users/UserPage";
 
 export const router = createBrowserRouter([
   {
@@ -36,11 +38,11 @@ export const router = createBrowserRouter([
           },
           {
             path: "/file-list",
-            element: createElement(UserPage),
+            element: createElement(FileList),
           },
           {
             path: "/fail-reports",
-            element: createElement(UserPage),
+            element: createElement(FailReport),
           },
         ],
       },

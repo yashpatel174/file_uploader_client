@@ -1,9 +1,14 @@
 import type { CheckboxGroupProps } from "antd/es/checkbox";
 import type { ColumnsType } from "antd/es/table";
 import { type ReactNode } from "react";
-import type { IUserTable } from "../interfaces/interface";
+import type {
+  FailReportResponse,
+  IFailReportColumn,
+  IFileTable,
+  IUserTable,
+} from "../interfaces/interface";
 
-export const tableColumn = (
+export const userColumns = (
   func: (record: IUserTable) => ReactNode,
 ): ColumnsType<IUserTable> => {
   return [
@@ -50,6 +55,78 @@ export const tableColumn = (
       align: "center",
       width: "15%",
       render: (_, record) => func(record),
+    },
+  ];
+};
+
+export const fileColumns = (
+  func: (record: IFileTable) => ReactNode,
+): ColumnsType<IFileTable> => {
+  return [
+    {
+      title: "Index",
+      dataIndex: "id",
+      align: "center",
+      width: "15%",
+    },
+    {
+      title: "User",
+      dataIndex: "userName",
+      align: "center",
+      width: "25%",
+    },
+    {
+      title: "Platform",
+      dataIndex: "platform",
+      align: "center",
+      width: "35%",
+    },
+    {
+      title: "Action",
+      key: "action",
+      dataIndex: "action",
+      align: "center",
+      width: "25%",
+      render: (_, record) => func(record),
+    },
+  ];
+};
+
+export const failReportColumns = (
+  func: (record: IFailReportColumn) => ReactNode,
+): ColumnsType<FailReportResponse> => {
+  return [
+    {
+      title: "Index",
+      dataIndex: "id",
+      align: "center",
+      width: "15%",
+    },
+    {
+      title: "User",
+      dataIndex: "userName",
+      align: "center",
+      width: "25%",
+    },
+    {
+      title: "Platform",
+      dataIndex: "platform",
+      align: "center",
+      width: "35%",
+    },
+    {
+      title: "Attempt",
+      dataIndex: "attempt",
+      align: "center",
+      width: "10%",
+    },
+    {
+      title: "Action",
+      key: "action",
+      dataIndex: "action",
+      align: "center",
+      width: "15%",
+      render: (_, record) => func(record as FailReportResponse),
     },
   ];
 };

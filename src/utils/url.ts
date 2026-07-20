@@ -20,4 +20,9 @@ export const API_URL = {
   PLAY_AUDIO: {
     PLAY: (id: string) => `/api/files/${id}/stream`, // GET
   },
+  FAIL_REPORT: "/upload/failed", // GET
+  RETRY_UPLOAD: (jobId: string) => `/upload/${jobId}/retry`, // POST,
+  GET_FILES: "/upload/files", // GET
+  AUDIO_LIST: (_id: string, platform: string) =>
+    `/user/audio/${_id}/${platform}`,
 };

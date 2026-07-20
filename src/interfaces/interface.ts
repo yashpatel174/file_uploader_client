@@ -236,3 +236,63 @@ export interface EditFormValues {
   totalSizeBytes?: number;
   totalTime?: number;
 }
+
+export type APIPlatform = "sftp" | "ftp" | "dropbox" | "drive";
+
+export interface FileList {
+  userId: string;
+  userName: string;
+  platform: APIPlatform;
+}
+
+export interface IFileTable extends FileList {
+  id: number;
+}
+
+export interface IFailReportColumn extends IFileTable {
+  attempt: number;
+}
+
+export interface FailReportResponse extends IFailReportColumn {
+  retryId: string;
+  disable: boolean;
+  lastError: string;
+  error: string;
+  jobId: string;
+  retryable: boolean;
+}
+
+export interface IFileState {
+  file: FileList[];
+  fileLoading: boolean;
+  error: string;
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+  openUserFiles: boolean;
+}
+
+export interface ISelectedFile {
+  userId: string;
+  platform: APIPlatform;
+}
+
+export interface IFileResponse {
+  data: FileList[];
+  pagination: IPagination;
+}
+
+export interface AudioResult {
+  id: string;
+  audioUrl: string;
+  fileName: string;
+  success: boolean;
+  lastError?: string;
+}
+
+export interface AudioResponse {
+  success: boolean;
+  message: string;
+  result: AudioResult[];
+}

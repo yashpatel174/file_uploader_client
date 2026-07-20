@@ -11,7 +11,7 @@ import type {
   SizeUnit,
   UnitType,
 } from "@src/interfaces/interface";
-import { tableColumn } from "@src/utils/column";
+import { userColumns } from "@src/utils/column";
 import { dynamicData } from "@src/utils/functions";
 import { Button, Empty, Pagination, Space, Table, Tooltip } from "antd";
 import { useEffect, useMemo, useState, type ReactNode } from "react";
@@ -143,7 +143,7 @@ const UserPage = () => {
     );
   };
 
-  const allColumn = tableColumn(renderAction);
+  const allColumn = userColumns(renderAction);
 
   return (
     <>
