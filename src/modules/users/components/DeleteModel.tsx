@@ -1,37 +1,63 @@
 import type { AppDispatch, RootState } from "@src/config/store";
 import { Modal } from "antd";
 import { useDispatch, useSelector } from "react-redux";
-import { deleteUser, getAllUsers, setDeleteModel } from "../slice";
+import { deleteUser, setDeleteModel } from "../slice";
 
 interface DeleteModelProps {
   userId: string | null;
   setDeleteUserId: React.Dispatch<React.SetStateAction<string | null>>;
+  setPage: React.Dispatch<React.SetStateAction<number>>;
+  refresh: () => void;
 }
 
-const DeleteModel = ({ userId, setDeleteUserId }: DeleteModelProps) => {
+const DeleteModel = ({
+  userId,
+  setDeleteUserId,
+  setPage,
+  refresh,
+}: DeleteModelProps) => {
   if (!userId) return;
   const dispatch = useDispatch<AppDispatch>();
-  const { deleteModel, deleteLoading, page, user, limit } = useSelector(
+  const { deleteModel, deleteLoading, page, user } = useSelector(
     (state: RootState) => state.data,
   );
 
+  // const handleDelete = async () => {
+  //   const nextPage = page > 1 && user.length === 1 ? page - 1 : page;
+  //   dispatch(deleteUser(userId as string)).then((res) => {
+  //     if (
+  //       res.payload &&
+  //       typeof res.payload !== "string" &&
+  //       "success" in res.payload === true
+  //     ) {
+  //       dispatch(
+  //         getAllUsers({
+  //           page: nextPage,
+  //           limit: limit,
+  //         }),
+  //       );
+  //       setDeleteUserId(null);
+  //     }
+  //   });
+  // };
+
   const handleDelete = async () => {
     const nextPage = page > 1 && user.length === 1 ? page - 1 : page;
-    dispatch(deleteUser(userId as string)).then((res) => {
-      if (
-        res.payload &&
-        typeof res.payload !== "string" &&
-        "success" in res.payload === true
-      ) {
-        dispatch(
-          getAllUsers({
-            page: nextPage,
-            limit: limit,
-          }),
-        );
-        setDeleteUserId(null);
+    const res = await dispatch(deleteUser(userId as string));
+
+    if (
+      res.payload &&
+      typeof res.payload !== "string" &&
+      "success" in res.payload
+    ) {
+      if (nextPage !== page) {
+        setPage(nextPage);
+      } else {
+        refresh();
       }
-    });
+
+      setDeleteUserId(null);
+    }
   };
 
   return (

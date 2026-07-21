@@ -2,8 +2,7 @@ import type { CheckboxGroupProps } from "antd/es/checkbox";
 import type { ColumnsType } from "antd/es/table";
 import { type ReactNode } from "react";
 import type {
-  FailReportResponse,
-  IFailReportColumn,
+  FailReportTable,
   IFileTable,
   IUserTable,
 } from "../interfaces/interface";
@@ -93,8 +92,8 @@ export const fileColumns = (
 };
 
 export const failReportColumns = (
-  func: (record: IFailReportColumn) => ReactNode,
-): ColumnsType<FailReportResponse> => {
+  func: (record: FailReportTable) => ReactNode,
+): ColumnsType<FailReportTable> => {
   return [
     {
       title: "Index",
@@ -126,7 +125,7 @@ export const failReportColumns = (
       dataIndex: "action",
       align: "center",
       width: "15%",
-      render: (_, record) => func(record as FailReportResponse),
+      render: (_, record) => func(record as FailReportTable),
     },
   ];
 };

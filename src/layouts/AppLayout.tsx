@@ -23,6 +23,7 @@ function AppLayout() {
   const { user, fileLoading, deleteLoading } = useSelector(
     (state: RootState) => state.data,
   );
+  const { apiLoading } = useSelector((state: RootState) => state.file);
 
   const handleAddUser = () => dispatch(setOpenUserModel());
   const handleLogout = async () => {
@@ -88,7 +89,7 @@ function AppLayout() {
             }}
             type="primary"
             onClick={handleLogout}
-            disabled={fileLoading || deleteLoading}
+            disabled={fileLoading || deleteLoading || apiLoading}
           >
             Logout
           </Button>

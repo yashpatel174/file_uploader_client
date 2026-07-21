@@ -262,6 +262,33 @@ export interface FailReportResponse extends IFailReportColumn {
   retryable: boolean;
 }
 
+export interface FailReportApi {
+  userId: {
+    userName: string;
+  };
+  platform: APIPlatform;
+  attemptCount: number;
+  retryable: boolean;
+  jobId: string;
+  lastError: {
+    code: string;
+    message: string;
+    provider: string;
+    failureType: string;
+  };
+}
+
+export interface FailReportTable {
+  id: number;
+  userName: string;
+  platform: APIPlatform;
+  attempt: number;
+  retryable: boolean;
+  jobId: string;
+  lastError: string;
+  error: string;
+}
+
 export interface IFileState {
   file: FileList[];
   fileLoading: boolean;
@@ -271,11 +298,13 @@ export interface IFileState {
   limit: number;
   totalPages: number;
   openUserFiles: boolean;
+  reportLoading: boolean;
+  reports: FailReportTable[];
+  apiLoading: boolean;
 }
-
 export interface ISelectedFile {
-  userId: string;
-  platform: APIPlatform;
+  userId: string | null;
+  platform: APIPlatform | null;
 }
 
 export interface IFileResponse {

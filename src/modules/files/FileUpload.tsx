@@ -17,8 +17,9 @@ import {
   Upload,
   type UploadProps,
 } from "antd";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
+import { errorReportList } from "../fileList/slice";
 import {
   authConnection,
   getAllUsers,
@@ -160,8 +161,10 @@ const FileUpload = () => {
                 setAuthToken({ ...authToken, googleAuth: false });
                 handleReset();
                 await dispatch(getAllUsers(paginationPayload));
+                window.location.reload();
               })
-              .catch((err) => console.log("Error =>", err));
+              .catch((err) => console.log("Error =>", err))
+              .finally(() => dispatch(errorReportList()));
           }
         });
       } catch (e: any) {
@@ -191,39 +194,115 @@ const FileUpload = () => {
           setAuthToken({ ...authToken, dropboxAuth: false });
           await handleReset();
           await dispatch(getAllUsers(paginationPayload));
+          window.location.reload();
         })
-        .catch((err) => console.log("Error =>", err));
+        .catch((err) => console.log("Error =>", err))
+        .then(() => dispatch(errorReportList()));
     }
   };
 
-  const handleSubmit = (values: FileUploadFormValues) => {
-    if (values.platform === "drive" && !auth.googleAuth) {
-      googleConnect();
-    } else if (values.platform === "dropbox" && !auth.dropboxAuth) {
-      dropboxAPI(values);
-    } else {
+  // const handleSubmit = (values: FileUploadFormValues) => {
+  //   if (values.platform === "drive" && !auth.googleAuth) {
+  //     googleConnect();
+  //   } else if (values.platform === "dropbox" && !auth.dropboxAuth) {
+  //     dropboxAPI(values);
+  //   } else {
+  //     const { _id, platform, googleId, googleSecretKey } = values;
+  //     if (!uploadedFile) {
+  //       message.error("Please select a file");
+  //       return;
+  //     }
+  //     const { unit } = dropdown.find((d) => d.value === _id) as IDropdown;
+  //     const formData = new FormData();
+  //     formData.append("file", uploadedFile as any);
+  //     formData.append("_id", _id);
+  //     formData.append("unit", unit);
+  //     formData.append("platform", platform);
+  //     formData.append("googleId", googleId as string);
+  //     formData.append("googleSecretKey", googleSecretKey as string);
+  //     dispatch(uploadFile(formData))
+  //       .then(async () => {
+  //         handleReset();
+  //         await dispatch(getAllUsers(paginationPayload));
+  //       })
+  //       .catch((err) => console.log("Error =>", err))
+  //       .then(() => {
+  //         dispatch(errorReportList());
+  //       })
+  //       .finally(() => {
+  //         setAuthToken({ googleAuth: false, dropboxAuth: false });
+  //         dispatch(getAllUsers(paginationPayload));
+  //       });
+  //   }
+  // };
+
+  const handleSubmit = useCallback(
+    (values: FileUploadFormValues) => {
+      if (values.platform === "drive" && !auth.googleAuth) {
+        googleConnect();
+        return;
+      }
+
+      if (values.platform === "dropbox" && !auth.dropboxAuth) {
+        dropboxAPI(values);
+        return;
+      }
+
       const { _id, platform, googleId, googleSecretKey } = values;
+
       if (!uploadedFile) {
         message.error("Please select a file");
         return;
       }
+
       const { unit } = dropdown.find((d) => d.value === _id) as IDropdown;
+
       const formData = new FormData();
-      formData.append("file", uploadedFile as any);
+      formData.append("file", uploadedFile);
       formData.append("_id", _id);
       formData.append("unit", unit);
       formData.append("platform", platform);
-      formData.append("googleId", googleId as string);
-      formData.append("googleSecretKey", googleSecretKey as string);
+
+      if (googleId) {
+        formData.append("googleId", googleId);
+      }
+
+      if (googleSecretKey) {
+        formData.append("googleSecretKey", googleSecretKey);
+      }
+
       dispatch(uploadFile(formData))
+        .unwrap()
         .then(async () => {
           handleReset();
-          await dispatch(getAllUsers(paginationPayload));
+          await Promise.all([
+            dispatch(getAllUsers(paginationPayload)),
+            dispatch(errorReportList()),
+          ]);
         })
-        .catch((err) => console.log("Error =>", err))
-        .finally(() => setAuthToken({ googleAuth: false, dropboxAuth: false }));
-    }
-  };
+        .catch((err) => {
+          console.error(err);
+        })
+        .finally(() => {
+          setAuthToken({
+            googleAuth: false,
+            dropboxAuth: false,
+          });
+        });
+    },
+    [
+      auth.googleAuth,
+      auth.dropboxAuth,
+      uploadedFile,
+      dropdown,
+      dispatch,
+      paginationPayload,
+      googleConnect,
+      dropboxAPI,
+      handleReset,
+      setAuthToken,
+    ],
+  );
 
   const isAuthenticated =
     (platform === "drive" && auth.googleAuth) ||

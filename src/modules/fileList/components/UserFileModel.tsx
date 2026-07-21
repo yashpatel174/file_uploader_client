@@ -1,6 +1,6 @@
 import { LeftOutlined, LoadingOutlined } from "@ant-design/icons";
 import type { AppDispatch, RootState } from "@src/config/store";
-import type { AudioResult } from "@src/interfaces/interface";
+import type { AudioResult, ISelectedFile } from "@src/interfaces/interface";
 import { getAudioPlayed, setAudioLoading } from "@src/modules/users/slice";
 import { Button, Col, Modal, Row, Space, Spin } from "antd";
 import Text from "antd/es/typography/Text";
@@ -8,7 +8,11 @@ import { Fragment, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getAllAudio, setOpenUserFiles } from "../slice";
 
-const UserFileModel = ({ userFiles }) => {
+export interface IUserFileModel {
+  userFiles: ISelectedFile;
+}
+
+const UserFileModel = ({ userFiles }: IUserFileModel) => {
   const dispatch = useDispatch<AppDispatch>();
   const { openUserFiles } = useSelector((state: RootState) => state.file);
   const [audio, setAudio] = useState<AudioResult[]>([]);

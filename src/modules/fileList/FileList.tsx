@@ -12,8 +12,8 @@ import { getAllFiles, setOpenUserFiles } from "./slice";
 const FileList = () => {
   const dispatch = useDispatch<AppDispatch>();
   const [userFiles, setUserFiles] = useState<ISelectedFile>({
-    userId: null,
-    platform: null,
+    userId: "",
+    platform: "sftp",
   });
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
@@ -29,8 +29,10 @@ const FileList = () => {
   }, [dispatch, page, pageSize, file.length]);
 
   const userList = useMemo(() => {
-    const filteredData = file.filter((u) =>
-      u.userName.toLowerCase().includes(search.toLowerCase()),
+    const filteredData = file.filter(
+      (u) =>
+        u.userName.toLowerCase().includes(search.toLowerCase()) ||
+        u.platform.toLowerCase().includes(search.toLowerCase()),
     );
 
     return filteredData?.map((u, idx) => {
@@ -81,9 +83,7 @@ const FileList = () => {
           y: "calc(100vh - 238px)",
         }}
         locale={{
-          emptyText: fileLoading ? (
-            fileLoading
-          ) : (
+          emptyText: !userList.length && (
             <Empty
               image={Empty.PRESENTED_IMAGE_SIMPLE}
               style={{

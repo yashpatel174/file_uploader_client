@@ -1,6 +1,6 @@
 import { QuestionCircleOutlined, RedoOutlined } from "@ant-design/icons";
 import type { AppDispatch, RootState } from "@src/config/store";
-import type { FailReportResponse } from "@src/interfaces/interface";
+import type { FailReportTable } from "@src/interfaces/interface";
 import { failReportColumns } from "@src/utils/column";
 import {
   Button,
@@ -11,79 +11,68 @@ import {
   Table,
   Tooltip,
 } from "antd";
-import { useEffect, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useState, type ReactNode } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { errorReport, retryError } from "../fileList/slice";
+import { useNavigate } from "react-router-dom";
+import { errorReportList, retryError, setApiLoading } from "../fileList/slice";
 import ErrorModel from "./component/ErrorModel";
+import { getAllUsers } from "../users/slice";
+import { paginationPayload } from "@src/utils/functions";
 
 const FailReport = () => {
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
-  const [report, setReport] = useState<any>([]);
   const [errModel, setErrModel] = useState<boolean>(false);
   const [apiError, setApiError] = useState<string | null>(null);
-  const [apiLoading, setApiLoading] = useState<boolean>(false);
+  const [retry, setRetry] = useState<string | null>(null);
 
-  const { file, fileLoading, total } = useSelector(
+  const { file, apiLoading, total, reports } = useSelector(
     (state: RootState) => state.file,
   );
 
-  const handleErrorReport = async () => {
-    dispatch(errorReport())
-      .then((res) => {
-        if (
-          res.payload &&
-          typeof res.payload !== "string" &&
-          "success" in res.payload === true
-        ) {
-          const { result } = res.payload;
-          const { jobs } = result;
-          const failReport = jobs?.map((f, idx) => {
-            return {
-              userName: f.userId.userName,
-              platform: f.platform,
-              attempt: f.attemptCount,
-              error: f.lastError.message,
-              jobId: f.jobId,
-              id: idx + 1,
-              retryable: f.retryable,
-            };
-          });
-          setReport(failReport);
-        }
-      })
-      .finally(() => {
-        setApiLoading(false);
-      });
+  const handleErrorReport = () => {
+    dispatch(errorReportList()).finally(() => {
+      dispatch(setApiLoading(false));
+    });
   };
 
   useEffect(() => {
     handleErrorReport();
   }, [dispatch, page, pageSize, file.length]);
 
-  const handleRetry = async (jobId: string) => {
-    setApiLoading(true);
-    await dispatch(retryError(jobId)).then(async (res) => {
+  const handleRetry = useCallback(
+    async (jobId: string) => {
+      dispatch(setApiLoading(true));
+      setRetry(jobId);
+
+      const res = await dispatch(retryError(jobId));
+
       if (
         res.payload &&
         typeof res.payload !== "string" &&
-        "success" in res.payload === true
+        "success" in res.payload
       ) {
         message.success(res.payload.message);
+        dispatch(getAllUsers(paginationPayload));
+        await navigate("/users");
       }
-      await handleErrorReport();
-    });
-  };
 
-  const handlePopupModel = async (record: FailReportResponse) => {
+      handleErrorReport();
+    },
+    [dispatch, navigate, handleErrorReport, reports.length],
+  );
+
+  const handlePopupModel = async (record: FailReportTable) => {
     const { error }: { error: string } = record;
     setApiError(error);
     setErrModel(true);
   };
 
-  const renderAction = (record: FailReportResponse): ReactNode => {
+  const renderAction = (record: FailReportTable): ReactNode => {
     const disable = !record.retryable;
+    const loading = retry === record.jobId;
     return (
       <Space size={[4, 4]}>
         <Tooltip title={"Resubmit"}>
@@ -91,7 +80,7 @@ const FailReport = () => {
             type="link"
             icon={<RedoOutlined />}
             disabled={disable}
-            loading={apiLoading}
+            loading={apiLoading && loading}
             onClick={() => handleRetry(record.jobId)}
           />
         </Tooltip>
@@ -112,12 +101,12 @@ const FailReport = () => {
 
   return (
     <>
-      <Table
+      <Table<FailReportTable>
         className="custom-table"
         bordered
         rowKey="_id"
-        loading={{ spinning: fileLoading }}
-        dataSource={report}
+        // loading={reportLoading}
+        dataSource={reports}
         tableLayout="fixed"
         pagination={false}
         scroll={{
@@ -125,9 +114,7 @@ const FailReport = () => {
           y: "calc(100vh - 238px)",
         }}
         locale={{
-          emptyText: fileLoading ? (
-            fileLoading
-          ) : (
+          emptyText: !reports.length && (
             <Empty
               image={Empty.PRESENTED_IMAGE_SIMPLE}
               style={{

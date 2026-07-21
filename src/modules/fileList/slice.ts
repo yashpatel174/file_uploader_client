@@ -6,6 +6,7 @@ import {
 import type {
   APIPlatform,
   AudioResponse,
+  FailReportApi,
   IFileResponse,
   IFileState,
 } from "@src/interfaces/interface";
@@ -16,13 +17,16 @@ import axios from "axios";
 
 const initialState: IFileState = {
   file: [],
+  reports: [],
   fileLoading: false,
+  reportLoading: false,
   error: "",
   total: 0,
   page: 1,
   limit: 10,
   totalPages: 1,
   openUserFiles: false,
+  apiLoading: false,
 };
 
 const FileSlice = createSlice({
@@ -31,6 +35,9 @@ const FileSlice = createSlice({
   reducers: {
     setOpenUserFiles: (state, action) => {
       state.openUserFiles = action.payload;
+    },
+    setApiLoading: (state, action) => {
+      state.apiLoading = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -56,13 +63,41 @@ const FileSlice = createSlice({
         state.fileLoading = false;
         state.error =
           action.payload ?? action.error.message ?? "Something went wrong";
+      })
+      .addCase(errorReportList.pending, (state) => {
+        state.reportLoading = true;
+      })
+      .addCase(
+        errorReportList.fulfilled,
+        (state, action: PayloadAction<any>) => {
+          const { jobs } = action.payload;
+          state.reportLoading = false;
+          state.reports =
+            jobs?.map((job: FailReportApi, idx: number) => {
+              console.log("job: ", job);
+              return {
+                userName: job.userId.userName,
+                platform: job.platform,
+                attempt: job.attemptCount,
+                error: job.lastError.message,
+                jobId: job.jobId,
+                id: idx + 1,
+                retryable: job.retryable,
+              };
+            }) ?? [];
+        },
+      )
+      .addCase(errorReportList.rejected, (state, action) => {
+        state.reportLoading = false;
+        state.error =
+          action.payload ?? action.error.message ?? "Something went wrong";
       });
   },
 });
 
 export const getAllFiles = createAsyncThunk<
   IFileResponse,
-  null,
+  void,
   { rejectValue: string }
 >("list/files", async (_, { rejectWithValue }) => {
   try {
@@ -102,14 +137,14 @@ export const getAllAudio = createAsyncThunk<
   }
 });
 
-export const errorReport = createAsyncThunk<
+export const errorReportList = createAsyncThunk<
   AudioResponse,
-  null,
+  void,
   { rejectValue: string }
 >("error/report", async (_, { rejectWithValue }) => {
   try {
     const res = await api.get(API_URL.FAIL_REPORT);
-    return res.data;
+    return res.data.result;
   } catch (error) {
     if (axios.isAxiosError(error)) {
       message.error(error.response?.data?.message);
@@ -140,6 +175,6 @@ export const retryError = createAsyncThunk<
   }
 });
 
-export const { setOpenUserFiles } = FileSlice.actions;
+export const { setOpenUserFiles, setApiLoading } = FileSlice.actions;
 
 export default FileSlice.reducer;

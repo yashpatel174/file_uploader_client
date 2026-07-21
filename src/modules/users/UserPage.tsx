@@ -40,23 +40,28 @@ const UserPage = () => {
   });
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const { search } = useOutletContext<{ search: string }>();
 
-  const {
-    user,
-    loading,
-    total,
-    fileModel,
-    isModelOpen,
-    userUnitMap,
-    dropdown,
-  } = useSelector((state: RootState) => state.data);
+  const refresh = () => setRefreshKey((v) => v + 1);
+
+  const { user, loading, total, fileModel, isModelOpen, userUnitMap } =
+    useSelector((state: RootState) => state.data);
+
+  // useEffect(() => {
+  //   if (dropdown.length > 0) return;
+  //   dispatch(getAllUsers({ page, limit: pageSize }));
+  // }, [dispatch, page, pageSize, dropdown.length]);
 
   useEffect(() => {
-    if (dropdown.length > 0) return;
-    dispatch(getAllUsers({ page, limit: pageSize }));
-  }, [dispatch, page, pageSize, dropdown.length]);
+    dispatch(
+      getAllUsers({
+        page,
+        limit: pageSize,
+      }),
+    );
+  }, [dispatch, page, pageSize, refreshKey]);
 
   const userList = useMemo(() => {
     const filteredData = user.filter((u) =>
@@ -206,7 +211,12 @@ const UserPage = () => {
       </div>
       {isModelOpen && <EditModel unit={unit} />}
       {fileModel && <UserData userData={userData} />}
-      <DeleteModel userId={deleteUserId} setDeleteUserId={setDeleteUserId} />
+      <DeleteModel
+        userId={deleteUserId}
+        setDeleteUserId={setDeleteUserId}
+        refresh={refresh}
+        setPage={setPage}
+      />
     </>
   );
 };
