@@ -22,25 +22,6 @@ const DeleteModel = ({
     (state: RootState) => state.data,
   );
 
-  // const handleDelete = async () => {
-  //   const nextPage = page > 1 && user.length === 1 ? page - 1 : page;
-  //   dispatch(deleteUser(userId as string)).then((res) => {
-  //     if (
-  //       res.payload &&
-  //       typeof res.payload !== "string" &&
-  //       "success" in res.payload === true
-  //     ) {
-  //       dispatch(
-  //         getAllUsers({
-  //           page: nextPage,
-  //           limit: limit,
-  //         }),
-  //       );
-  //       setDeleteUserId(null);
-  //     }
-  //   });
-  // };
-
   const handleDelete = async () => {
     const nextPage = page > 1 && user.length === 1 ? page - 1 : page;
     const res = await dispatch(deleteUser(userId as string));

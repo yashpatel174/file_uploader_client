@@ -16,8 +16,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { errorReportList, retryError, setApiLoading } from "../fileList/slice";
 import ErrorModel from "./component/ErrorModel";
-import { getAllUsers } from "../users/slice";
-import { paginationPayload } from "@src/utils/functions";
 
 const FailReport = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -55,7 +53,6 @@ const FailReport = () => {
         "success" in res.payload
       ) {
         message.success(res.payload.message);
-        dispatch(getAllUsers(paginationPayload));
         await navigate("/users");
       }
 

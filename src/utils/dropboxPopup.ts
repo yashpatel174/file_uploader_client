@@ -18,11 +18,37 @@ export const openDropboxPopup = async (
   if (!popup) throw new Error("Popup blocked");
 
   return new Promise((resolve, reject) => {
+    let completed = false;
+
+    const cleanup = () => {
+      window.removeEventListener("message", handleMessage);
+      clearInterval(checkPopup);
+      if (!popup.closed) {
+        popup.close();
+      }
+    };
+
+    const checkPopup = setInterval(() => {
+      if (!popup.closed || completed) {
+        return;
+      }
+      clearInterval(checkPopup);
+      setTimeout(() => {
+        if (!completed) {
+          cleanup();
+          reject(new Error("Authentication cancelled"));
+        }
+      }, 500);
+    }, 300);
+
     const handleMessage = async (event: MessageEvent) => {
       if (event.origin !== window.location.origin) return;
 
       const { code } = await event.data;
       if (!code) return;
+
+      completed = true;
+      cleanup();
 
       try {
         const tokenResponse = await api.post("/api/dropbox/exchange-token", {

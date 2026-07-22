@@ -26,7 +26,7 @@ const FileList = () => {
 
   useEffect(() => {
     dispatch(getAllFiles());
-  }, [dispatch, page, pageSize, file.length]);
+  }, [dispatch]);
 
   const userList = useMemo(() => {
     const filteredData = file.filter(
@@ -125,7 +125,9 @@ const FileList = () => {
           }}
         />
       </div>
-      {openUserFiles && <UserFileModel userFiles={userFiles} />}
+      {openUserFiles && (
+        <UserFileModel userFiles={userFiles} setUserFiles={setUserFiles} />
+      )}
     </>
   );
 };
