@@ -139,17 +139,27 @@ export interface IUserResponse {
   transformedUsers: IUserInfo[];
   pagination: IPagination;
   dropdown: IUserDropdown[];
+  failReports?: IFailReport[];
+}
+
+export interface IFailReport {
+  userId: string;
+  unit: UnitType;
+  actualLimit: number;
+  jobId: string;
 }
 
 export interface IUserState {
   user: IUserInfo[];
   dropdown: IDropdown[];
   audio: IAudioInfo[];
+  refreshKey: number;
   total: number;
   page: number;
   limit: number;
   totalPages: number;
   loading: boolean;
+  updateLoading: boolean;
   deleteLoading: boolean;
   audioLoading: boolean;
   userLoading: boolean;
@@ -159,6 +169,7 @@ export interface IUserState {
   userModel: boolean;
   fileUploadModel: boolean;
   fileModel: boolean;
+  failReport?: IFailReport[];
   error: string | null;
   userInfo: IUserData | null;
   userUnitMap: Record<string, UnitType>;
@@ -207,10 +218,18 @@ export interface IUnitProps {
   unit: SizeUnit;
 }
 
-export interface IEditData {
+export interface IUpdatedSize {
   userId: string;
   unit: string;
   newValue: number;
+  newAvailableValue: number;
+}
+
+export interface IEditData extends IUpdatedSize {
+  isReset: boolean;
+  isMail: boolean;
+  jobId: string | null;
+  emailPayload: IEmailPayload;
 }
 
 export interface IUserFilePayload {
@@ -234,7 +253,11 @@ export interface ConvertSizeOptions {
 export interface EditFormValues {
   unit: string;
   totalSizeBytes?: number;
+  newSize: number;
+  newTime: number;
   totalTime?: number;
+  opearation: "+" | "-";
+  consumed: string;
 }
 
 export type APIPlatform = "sftp" | "ftp" | "dropbox" | "drive";
@@ -270,6 +293,8 @@ export interface FailReportApi {
   attemptCount: number;
   retryable: boolean;
   jobId: string;
+  limit: number;
+  unit: UnitType;
   lastError: {
     code: string;
     message: string;
@@ -285,6 +310,7 @@ export interface FailReportTable {
   attempt: number;
   retryable: boolean;
   jobId: string;
+  limit: string;
   lastError: string;
   error: string;
 }
@@ -324,4 +350,10 @@ export interface AudioResponse {
   success: boolean;
   message: string;
   result: AudioResult[];
+}
+export interface IEmailPayload {
+  unit: string;
+  total: string;
+  used: string;
+  updated: string;
 }

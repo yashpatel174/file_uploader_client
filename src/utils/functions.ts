@@ -1,7 +1,7 @@
 import type {
   IBaseOperation,
-  IEditData,
   IFormattedUsage,
+  IUpdatedSize,
   IUserData,
   IUserInfo,
   UnitType,
@@ -32,7 +32,10 @@ export const dynamicData = (
   };
 };
 
-export const buildPayload = (values: any, userInfo: IUserData): IEditData => {
+export const buildPayload = (
+  values: any,
+  userInfo: IUserData,
+): IUpdatedSize => {
   const { unit, opearation } = values;
   const isSize = unit === "size";
 
@@ -56,7 +59,7 @@ export const buildPayload = (values: any, userInfo: IUserData): IEditData => {
     }
   }
 
-  const { newTotalBytes } = slotOperation({
+  const { newTotalBytes, newAvailableBytes } = slotOperation({
     totalBytes: config.total,
     consumedBytes: config.consumed,
     newValueBytes: config.incomingValue,
@@ -67,6 +70,7 @@ export const buildPayload = (values: any, userInfo: IUserData): IEditData => {
     unit,
     userId: userInfo._id,
     newValue: newTotalBytes,
+    newAvailableValue: newAvailableBytes,
   };
 };
 

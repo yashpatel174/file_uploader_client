@@ -25,6 +25,7 @@ import {
   setDeleteModel,
   setOpenModel,
   setOpenUserData,
+  setRefreshKey,
   setUserInfo,
   setUserUnitMap,
 } from "./slice";
@@ -40,19 +41,20 @@ const UserPage = () => {
   });
   const [page, setPage] = useState<number>(1);
   const [pageSize, setPageSize] = useState<number>(10);
-  const [refreshKey, setRefreshKey] = useState(0);
 
   const { search } = useOutletContext<{ search: string }>();
 
-  const refresh = () => setRefreshKey((v) => v + 1);
+  const refresh = () => dispatch(setRefreshKey((v: number) => v + 1));
 
-  const { user, loading, total, fileModel, isModelOpen, userUnitMap } =
-    useSelector((state: RootState) => state.data);
-
-  // useEffect(() => {
-  //   if (dropdown.length > 0) return;
-  //   dispatch(getAllUsers({ page, limit: pageSize }));
-  // }, [dispatch, page, pageSize, dropdown.length]);
+  const {
+    user,
+    loading,
+    total,
+    fileModel,
+    isModelOpen,
+    userUnitMap,
+    refreshKey,
+  } = useSelector((state: RootState) => state.data);
 
   useEffect(() => {
     dispatch(

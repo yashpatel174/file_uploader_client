@@ -29,6 +29,7 @@ const FailReport = () => {
   const { file, apiLoading, total, reports } = useSelector(
     (state: RootState) => state.file,
   );
+  const { refreshKey } = useSelector((state: RootState) => state.data);
 
   const handleErrorReport = () => {
     dispatch(errorReportList()).finally(() => {
@@ -38,7 +39,7 @@ const FailReport = () => {
 
   useEffect(() => {
     handleErrorReport();
-  }, [dispatch, page, pageSize, file.length]);
+  }, [dispatch, page, pageSize, file.length, refreshKey]);
 
   const handleRetry = useCallback(
     async (jobId: string) => {

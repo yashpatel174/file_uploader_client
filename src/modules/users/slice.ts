@@ -24,10 +24,12 @@ const initialState: IUserState = {
   dropdown: [],
   audio: [],
   total: 0,
+  refreshKey: 0,
   page: 1,
   limit: 10,
   totalPages: 1,
   loading: false,
+  updateLoading: false,
   deleteModel: false,
   deleteLoading: false,
   audioLoading: false,
@@ -40,6 +42,7 @@ const initialState: IUserState = {
   fileModel: false,
   fileLoading: false,
   userUnitMap: {},
+  failReport: [],
 };
 
 const UserSlice = createSlice({
@@ -75,6 +78,12 @@ const UserSlice = createSlice({
     },
     setDeleteModel: (state, action) => {
       state.deleteModel = action.payload;
+    },
+    setRefreshKey: (state, action) => {
+      state.refreshKey = action.payload;
+    },
+    setUpdateLoading: (state, action) => {
+      state.updateLoading = action.payload;
     },
     setUserUnitMap: (
       state,
@@ -117,13 +126,15 @@ const UserSlice = createSlice({
         getAllUsers.fulfilled,
         (state, action: PayloadAction<IUserResponse>) => {
           state.loading = false;
-          const { pagination, transformedUsers, dropdown } = action.payload;
+          const { pagination, transformedUsers, dropdown, failReports } =
+            action.payload;
           const { limit, page, total, totalPages } = pagination;
           state.total = total;
           state.page = page;
           state.totalPages = totalPages;
           state.limit = limit;
           state.user = transformedUsers;
+          state.failReport = failReports || [];
           state.dropdown = dropdown?.map((u) => {
             const selectedUnit = state.userUnitMap[u._id] ?? u.unit;
             return {
@@ -240,21 +251,28 @@ export const updateUserInfo = createAsyncThunk<
   IUser,
   IEditData,
   { rejectValue: string }
->("user/update", async ({ userId, unit, newValue }) => {
-  try {
-    if (!userId) message.error("User ID is required");
-    const res = await api.patch(API_URL.UPDATE_FILE_SIZE_LIMIT(userId), {
-      unit,
-      newValue,
-    });
-    message.success(res.data.message);
-    return res.data;
-  } catch (error: unknown) {
-    if (axios.isAxiosError(error)) {
-      return message.error(error.response?.data?.message);
+>(
+  "user/update",
+  async ({ userId, unit, newValue, isMail, isReset, jobId, emailPayload }) => {
+    try {
+      if (!userId) message.error("User ID is required");
+      const res = await api.patch(API_URL.UPDATE_FILE_SIZE_LIMIT(userId), {
+        unit,
+        newValue,
+        isMail,
+        isReset,
+        emailPayload: emailPayload ? emailPayload : {},
+        jobId: jobId ? jobId : null,
+      });
+      message.success(res.data.message);
+      return res.data;
+    } catch (error: unknown) {
+      if (axios.isAxiosError(error)) {
+        return message.error(error.response?.data?.message);
+      }
     }
-  }
-});
+  },
+);
 
 export const uploadFile = createAsyncThunk<
   IApiMessage,
@@ -383,6 +401,7 @@ export const {
   setUserInfo,
   setOpenModel,
   setCloseModel,
+  setRefreshKey,
   setOpenUpload,
   setCloseUpload,
   setUserUnitMap,
@@ -390,6 +409,7 @@ export const {
   setAudioLoading,
   setOpenUserData,
   setCloseUserData,
+  setUpdateLoading,
   setOpenUserModel,
   setCloseUserModel,
 } = UserSlice.actions;

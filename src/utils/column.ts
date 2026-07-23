@@ -105,13 +105,19 @@ export const failReportColumns = (
       title: "User",
       dataIndex: "userName",
       align: "center",
-      width: "25%",
+      width: "20%",
     },
     {
       title: "Platform",
       dataIndex: "platform",
       align: "center",
-      width: "35%",
+      width: "25%",
+    },
+    {
+      title: "Length",
+      dataIndex: "limit",
+      align: "center",
+      width: "15%",
     },
     {
       title: "Attempt",

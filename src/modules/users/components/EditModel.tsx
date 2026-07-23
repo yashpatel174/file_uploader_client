@@ -1,6 +1,7 @@
 import type { AppDispatch, RootState } from "@src/config/store";
 import type {
   EditFormValues,
+  IEmailPayload,
   IUnitProps,
   IUserData,
   SizeUnit,
@@ -13,8 +14,11 @@ import {
   paginationPayload,
 } from "@src/utils/functions";
 import { getStorageStatus, getUsagePercentage } from "@src/utils/menuItems";
-import { toBytes } from "@src/utils/sizeConverter";
-import { parseDurationToSeconds } from "@src/utils/timeConverter";
+import { formatBytes, toBytes } from "@src/utils/sizeConverter";
+import {
+  formatDuration,
+  parseDurationToSeconds,
+} from "@src/utils/timeConverter";
 import { timeValidation, unitValidation } from "@src/utils/validation";
 import {
   Button,
@@ -34,7 +38,12 @@ import {
 } from "antd";
 import { useCallback, useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { getAllUsers, setCloseModel, updateUserInfo } from "../slice";
+import {
+  getAllUsers,
+  setCloseModel,
+  setUpdateLoading,
+  updateUserInfo,
+} from "../slice";
 
 const EditModel: React.FC<IUnitProps> = ({ unit = "KB" }) => {
   const dispatch = useDispatch<AppDispatch>();
@@ -51,6 +60,10 @@ const EditModel: React.FC<IUnitProps> = ({ unit = "KB" }) => {
   const { isModelOpen, userInfo } = useSelector(
     (state: RootState) => state.data,
   );
+  const { failReport, updateLoading } = useSelector(
+    (state: RootState) => state.data,
+  );
+
   if (!userInfo) return null;
 
   useEffect(() => {
@@ -75,16 +88,70 @@ const EditModel: React.FC<IUnitProps> = ({ unit = "KB" }) => {
 
   const handleSubmit = async (values: EditFormValues) => {
     try {
-      const finalData = buildPayload(values, userInfo);
+      dispatch(setUpdateLoading(true));
+      const fileData = failReport?.find(
+        (r) => r.userId === userInfo._id && r.unit === values.unit,
+      );
+      const isUnitMatched =
+        fileData !== undefined && fileData.unit === values.unit;
+      const newData = buildPayload(values, userInfo);
+      let isReset: boolean = false;
+      let isMail: boolean = values.opearation === "+" ? true : false;
+
+      let emailPayload: IEmailPayload = {
+        unit: values.unit,
+        total: "",
+        used: "",
+        updated: "",
+      };
+      if (isMail) {
+        const updatedUnit = values.unit;
+        if (updatedUnit === "size") {
+          const total = formatBytes(userInfo[updatedUnit].total);
+          const used = formatBytes(userInfo[updatedUnit].consumed);
+          const updated = formatBytes(Number(values.newSize));
+          emailPayload.total = total;
+          emailPayload.used = used;
+          emailPayload.updated = updated;
+        } else if (updatedUnit === "time") {
+          const total = formatDuration(userInfo[updatedUnit].total);
+          const used = formatDuration(userInfo[updatedUnit].consumed);
+          const { totalSeconds } = parseDurationToSeconds(
+            Number(values.newTime),
+          );
+          const updated = formatDuration(Number(totalSeconds));
+          emailPayload.total = total;
+          emailPayload.used = used;
+          emailPayload.updated = updated;
+        }
+      }
+      if (fileData && values.opearation === "+") {
+        const { newAvailableValue } = newData;
+        if (isUnitMatched) {
+          if (newAvailableValue >= fileData.actualLimit) {
+            isReset = true;
+          } else {
+            isReset = false;
+          }
+        }
+      }
+      const finalData = {
+        ...newData,
+        isReset,
+        isMail,
+        jobId: fileData?.jobId ?? null,
+        emailPayload,
+      };
       await dispatch(updateUserInfo(finalData));
 
-      dispatch(setCloseModel());
-      form.resetFields();
+      handleClose();
       await dispatch(getAllUsers(paginationPayload));
     } catch (error) {
       message.error(
         error instanceof Error ? error.message : "Something went wrong",
       );
+    } finally {
+      dispatch(setUpdateLoading(false));
     }
   };
 
@@ -317,7 +384,8 @@ const EditModel: React.FC<IUnitProps> = ({ unit = "KB" }) => {
                       <Button
                         type="primary"
                         onClick={() => form.submit()}
-                        disabled={hasErrors || disable}
+                        disabled={hasErrors || disable || updateLoading}
+                        loading={updateLoading}
                       >
                         OK
                       </Button>

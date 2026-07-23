@@ -11,6 +11,8 @@ import type {
   IFileState,
 } from "@src/interfaces/interface";
 import api from "@src/utils/intercepter";
+import { formatBytes } from "@src/utils/sizeConverter";
+import { formatDuration } from "@src/utils/timeConverter";
 import { API_URL } from "@src/utils/url";
 import { message } from "antd";
 import axios from "axios";
@@ -74,13 +76,17 @@ const FileSlice = createSlice({
           state.reportLoading = false;
           state.reports =
             jobs?.map((job: FailReportApi, idx: number) => {
-              console.log("job: ", job);
+              const dataLimit =
+                job.unit === "size"
+                  ? formatBytes(job.limit)
+                  : formatDuration(job.limit);
               return {
                 userName: job.userId.userName,
                 platform: job.platform,
                 attempt: job.attemptCount,
                 error: job.lastError.message,
                 jobId: job.jobId,
+                limit: dataLimit,
                 id: idx + 1,
                 retryable: job.retryable,
               };
