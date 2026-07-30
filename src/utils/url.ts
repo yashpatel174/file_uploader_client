@@ -7,6 +7,7 @@ export const API_URL = {
     `/users?page=${page}&limit=${limit}`, // GET
   UPDATE_FILE_SIZE_LIMIT: (_id: string) => `/users/${_id}`, // PATCH
   FILE_UPLOAD: "/upload", // POST
+  MULTIPLE_FILE_UPLOAD: (_id: string) => `/upload/${_id}/multiple-files`, // POST
   DELETE_USER: (id: string) => `/${id}`, // DELETE
   AUTH_CONNECTION: (platform: string, _id: string) =>
     `/auth/${platform}/connection/${_id}`, // GET

@@ -158,8 +158,8 @@ const FileUpload = () => {
             dispatch(uploadFile(formData))
               .then(async () => {
                 setAuthToken({ ...authToken, googleAuth: false });
-                handleReset();
-                dispatch(getAllUsers(paginationPayload));
+                await handleReset();
+                await dispatch(getAllUsers(paginationPayload));
               })
               .catch((err) => console.log("Error =>", err));
           }
@@ -189,8 +189,8 @@ const FileUpload = () => {
       dispatch(uploadFile(formData))
         .then(async () => {
           setAuthToken({ ...authToken, dropboxAuth: false });
-          handleReset();
-          dispatch(getAllUsers(paginationPayload));
+          await handleReset();
+          await dispatch(getAllUsers(paginationPayload));
         })
         .catch((err) => console.log("Error =>", err));
     }
@@ -233,7 +233,10 @@ const FileUpload = () => {
 
       dispatch(uploadFile(formData))
         .unwrap()
-        .then(async () => handleReset())
+        .then(async () => {
+          await handleReset();
+          await dispatch(getAllUsers(paginationPayload));
+        })
         .catch((err) => console.error(err))
         .finally(() => {
           setAuthToken({
@@ -305,7 +308,7 @@ const FileUpload = () => {
 
               <Col span={12}>
                 <Form.Item
-                  label={"Platform"}
+                  label={"Connector"}
                   name="platform"
                   required
                   style={{ marginBottom: 0 }}

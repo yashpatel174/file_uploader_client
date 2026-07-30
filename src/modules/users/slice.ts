@@ -29,6 +29,7 @@ const initialState: IUserState = {
   limit: 10,
   totalPages: 1,
   loading: false,
+  fileUploadLoading: false,
   updateLoading: false,
   deleteModel: false,
   deleteLoading: false,
@@ -140,6 +141,7 @@ const UserSlice = createSlice({
             return {
               label: u.userName,
               value: u._id,
+              connector: u.connector,
               unit: selectedUnit,
               size: u.size,
               time: u.time,
@@ -200,6 +202,17 @@ const UserSlice = createSlice({
         state.error =
           action.payload ?? action.error.message ?? "Something went wrong";
         state.user = [];
+      })
+      .addCase(multipleFilesUpload.pending, (state) => {
+        state.fileUploadLoading = true;
+      })
+      .addCase(multipleFilesUpload.fulfilled, (state) => {
+        state.fileUploadLoading = false;
+      })
+      .addCase(multipleFilesUpload.rejected, (state, action) => {
+        state.fileUploadLoading = false;
+        state.error =
+          action.payload ?? action.error.message ?? "Something went wrong";
       });
   },
 });
@@ -394,6 +407,24 @@ export const authConnection = createAsyncThunk<
 
     message.error(errorMessage);
     return rejectWithValue(errorMessage);
+  }
+});
+
+export const multipleFilesUpload = createAsyncThunk<
+  IApiMessage,
+  { payload: FormData; _id: string },
+  { rejectValue: string }
+>("multiple/files", async ({ payload, _id }) => {
+  try {
+    console.log("_id: ", _id);
+    console.log("payload: ", payload);
+    const res = await api.post(API_URL.MULTIPLE_FILE_UPLOAD(_id), payload);
+    message.success(res.data.message);
+    return res.data;
+  } catch (error: unknown) {
+    if (axios.isAxiosError(error)) {
+      return message.error(error.response?.data?.message);
+    }
   }
 });
 

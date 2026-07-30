@@ -1,3 +1,5 @@
+import type { IPlatform } from "@src/modules/files/FileUpload";
+
 export type UnitType = "size" | "time";
 
 export interface IUnitUsage {
@@ -29,25 +31,10 @@ export interface IUserQuota<T = number | string> {
   time: IUsage<T>;
 }
 
-export interface IUserInfo extends IUserBase, IUserQuota<number> {
+export interface IUserInfo
+  extends IUserBase, IUserQuota<number>, IAuthProviders {
   unit: UnitType;
   totalDocuments: number;
-  googleAuth: boolean;
-  dropboxAuth: boolean;
-}
-
-export interface IUserTable {
-  available: string;
-  consumed: string;
-  id: number;
-  size: IUnitInt;
-  time: IUnitInt;
-  total: string;
-  totalDocuments: number;
-  unit: string;
-  unitType: IFormattedUsage;
-  userName: string;
-  _id: string;
 }
 
 export type SizeUnit = "Bytes" | "KB" | "MB" | "GB";
@@ -65,7 +52,7 @@ export interface IPagination {
 }
 
 export interface IUserData extends IUserBase {
-  unit: string;
+  unit: UnitType;
   size: IUsage<number>;
   time: IUsage<number>;
 }
@@ -81,11 +68,12 @@ export interface IUserTableRow extends IUserTableBase {
   unitType: IFormattedUsage;
 }
 
-export interface IUserTable extends IUserTableBase {
+export interface IUserTable extends IUserTableBase, IAuthProviders {
   size: IUnitInt;
   time: IUnitInt;
-  unit: string;
+  unit: UnitType;
   totalDocuments: number;
+  connector: APIPlatform;
   unitType: IFormattedUsage;
 }
 
@@ -117,6 +105,7 @@ export interface IAudioInfo {
 export interface IDropdown extends IAuthProviders {
   label: string;
   value: string;
+  connector: IPlatform;
   unit: UnitType;
   size: IUnitUsage;
   time: IUnitUsage;
@@ -129,6 +118,7 @@ export interface IPaginatedResponse<T> {
 
 export interface IUserDropdown extends IUserBase {
   unit: UnitType;
+  connector: IPlatform;
   googleAuthenticated: boolean;
   dropboxAuthenticated: boolean;
   size: IUnitUsage;
@@ -163,6 +153,7 @@ export interface IUserState {
   deleteLoading: boolean;
   audioLoading: boolean;
   userLoading: boolean;
+  fileUploadLoading: boolean;
   fileLoading: boolean;
   deleteModel: boolean;
   isModelOpen: boolean;
@@ -220,7 +211,7 @@ export interface IUnitProps {
 
 export interface IUpdatedSize {
   userId: string;
-  unit: string;
+  unit: UnitType;
   newValue: number;
   newAvailableValue: number;
 }
@@ -234,7 +225,7 @@ export interface IEditData extends IUpdatedSize {
 
 export interface IUserFilePayload {
   userId: string;
-  unit: string;
+  unit: UnitType;
 }
 
 export interface IBaseOperation {
@@ -251,7 +242,7 @@ export interface ConvertSizeOptions {
 }
 
 export interface EditFormValues {
-  unit: string;
+  unit: UnitType;
   totalSizeBytes?: number;
   newSize: number;
   newTime: number;
@@ -352,7 +343,7 @@ export interface AudioResponse {
   result: AudioResult[];
 }
 export interface IEmailPayload {
-  unit: string;
+  unit: UnitType;
   total: string;
   used: string;
   updated: string;

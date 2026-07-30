@@ -11,6 +11,7 @@ import PublicRoute from "../modules/auth/components/PublicRoute";
 import FileUpload from "../modules/files/FileUpload";
 import DropboxCallback from "../modules/files/components/DropboxCallback";
 import UserPage from "../modules/users/UserPage";
+import Connector from "@src/modules/connector/Connector";
 
 export const router = createBrowserRouter([
   {
@@ -43,6 +44,10 @@ export const router = createBrowserRouter([
           {
             path: "/fail-reports",
             element: createElement(FailReport),
+          },
+          {
+            path: "/connector",
+            element: createElement(Connector),
           },
         ],
       },

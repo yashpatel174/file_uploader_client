@@ -5,6 +5,7 @@ export const menuItems = [
   { key: "/file-upload", label: "File Upload" },
   { key: "/file-list", label: "File List" },
   { key: "/fail-reports", label: "Fail Reports" },
+  { key: "/connector", label: "Connector" },
 ];
 
 export const fileUploadPlatform = [

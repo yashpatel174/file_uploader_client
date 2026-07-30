@@ -20,7 +20,7 @@ function AppLayout() {
   const userPage =
     location.pathname === "/users" || location.pathname === "/file-list";
 
-  const { user, fileLoading, deleteLoading } = useSelector(
+  const { user, fileLoading, deleteLoading, fileUploadLoading } = useSelector(
     (state: RootState) => state.data,
   );
   const { apiLoading } = useSelector((state: RootState) => state.file);
@@ -89,7 +89,9 @@ function AppLayout() {
             }}
             type="primary"
             onClick={handleLogout}
-            disabled={fileLoading || deleteLoading || apiLoading}
+            disabled={
+              fileLoading || deleteLoading || apiLoading || fileUploadLoading
+            }
           >
             Logout
           </Button>
