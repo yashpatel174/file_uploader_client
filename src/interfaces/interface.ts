@@ -1,4 +1,4 @@
-import type { IPlatform } from "@src/modules/files/FileUpload";
+export type IPlatform = "Dropbox" | "Google Drive" | null;
 
 export type UnitType = "size" | "time";
 
@@ -73,7 +73,6 @@ export interface IUserTable extends IUserTableBase, IAuthProviders {
   time: IUnitInt;
   unit: UnitType;
   totalDocuments: number;
-  connector: APIPlatform;
   unitType: IFormattedUsage;
 }
 
@@ -123,6 +122,11 @@ export interface IUserDropdown extends IUserBase {
   dropboxAuthenticated: boolean;
   size: IUnitUsage;
   time: IUnitUsage;
+}
+
+export interface IBulkPlayload {
+  connector: APIPlatform;
+  _id: string;
 }
 
 export interface IUserResponse {

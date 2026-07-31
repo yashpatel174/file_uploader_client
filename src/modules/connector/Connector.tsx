@@ -17,12 +17,13 @@ import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { getAllUsers, multipleFilesUpload } from "../users/slice";
 import { paginationPayload } from "@src/utils/functions";
+import type { RcFile, UploadFile } from "antd/es/upload";
+import type { IBulkPlayload } from "@src/interfaces/interface";
 
 const Connector = () => {
   const [form] = Form.useForm();
   const dispatch = useDispatch<AppDispatch>();
 
-  const [file, setFile] = useState<boolean>(false);
   const [uploadedFiles, setUploadedFiles] = useState<File[]>([]);
 
   const { dropdown, fileUploadLoading } = useSelector(
@@ -53,7 +54,7 @@ const Connector = () => {
     accept: ".mp3,.wav,.ogg,.m4a",
     multiple: true,
     maxCount: 10,
-    beforeUpload: (file: File) => {
+    beforeUpload: (file: RcFile) => {
       const extension = file.name
         .toLowerCase()
         .substring(file.name.lastIndexOf("."));
@@ -70,15 +71,22 @@ const Connector = () => {
       }
 
       setUploadedFiles((prev) => [...prev, file]);
-      setFile(true);
       return false;
     },
-    onRemove: () => {
+    onRemove: (file: UploadFile) => {
       setUploadedFiles((prev) => {
-        const updated = prev.filter((f) => f.uid !== file.uid);
-        setFile(updated.length > 0);
+        const updated = prev.filter(
+          (f) =>
+            !(
+              f.name === file.name &&
+              f.size === file.size &&
+              f.lastModified === (file.originFileObj as File)?.lastModified
+            ),
+        );
+
         return updated;
       });
+
       return true;
     },
   };
@@ -88,7 +96,7 @@ const Connector = () => {
     setUploadedFiles([]);
   };
 
-  const handleSubmit = (value) => {
+  const handleSubmit = (value: IBulkPlayload) => {
     const formData = new FormData();
     formData.append("connector", value.connector);
     uploadedFiles.forEach((file) => {

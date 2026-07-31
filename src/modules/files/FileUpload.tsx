@@ -1,7 +1,11 @@
 import { UploadOutlined } from "@ant-design/icons";
 import { useGoogleLogin } from "@react-oauth/google";
 import type { AppDispatch, RootState } from "@src/config/store";
-import type { IAuthProviders, IDropdown } from "@src/interfaces/interface";
+import type {
+  IAuthProviders,
+  IDropdown,
+  IPlatform,
+} from "@src/interfaces/interface";
 import { openDropboxPopup } from "@src/utils/dropboxPopup";
 import { paginationPayload } from "@src/utils/functions";
 import { fileUploadPlatform } from "@src/utils/menuItems";
@@ -36,8 +40,6 @@ interface FileUploadFormValues {
   dropboxAppKey?: string;
   dropboxSecretKey?: string;
 }
-
-export type IPlatform = "Dropbox" | "Google Drive" | null;
 
 const FileUpload = () => {
   const [form] = Form.useForm();
