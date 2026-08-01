@@ -1,20 +1,20 @@
 import type { AppDispatch, RootState } from "@src/config/store";
 import { Modal } from "antd";
 import { useDispatch, useSelector } from "react-redux";
-import { deleteUser, setDeleteModel } from "../slice";
+import { deleteUser, getAllUsers, setDeleteModel } from "../slice";
 
 interface DeleteModelProps {
   userId: string | null;
   setDeleteUserId: React.Dispatch<React.SetStateAction<string | null>>;
   setPage: React.Dispatch<React.SetStateAction<number>>;
-  refresh: () => void;
+  pageSize: number;
 }
 
 const DeleteModel = ({
   userId,
   setDeleteUserId,
   setPage,
-  refresh,
+  pageSize,
 }: DeleteModelProps) => {
   if (!userId) return;
   const dispatch = useDispatch<AppDispatch>();
@@ -23,21 +23,26 @@ const DeleteModel = ({
   );
 
   const handleDelete = async () => {
-    const nextPage = page > 1 && user.length === 1 ? page - 1 : page;
+    const isLastItemOnPage = user.length === 1;
+    const nextPage = isLastItemOnPage && page > 1 ? page - 1 : page;
+
     const res = await dispatch(deleteUser(userId as string));
 
-    if (
-      res.payload &&
-      typeof res.payload !== "string" &&
-      "success" in res.payload
-    ) {
-      if (nextPage !== page) {
-        setPage(nextPage);
-      } else {
-        refresh();
-      }
+    if (!deleteUser.fulfilled.match(res)) {
+      return;
+    }
 
-      setDeleteUserId(null);
+    setDeleteUserId(null);
+
+    if (nextPage !== page) {
+      setPage(nextPage);
+    } else {
+      dispatch(
+        getAllUsers({
+          page,
+          limit: pageSize,
+        }),
+      );
     }
   };
 

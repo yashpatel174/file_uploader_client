@@ -74,23 +74,24 @@ const FileSlice = createSlice({
         (state, action: PayloadAction<any>) => {
           const { jobs } = action.payload;
           state.reportLoading = false;
-          state.reports =
-            jobs?.map((job: FailReportApi, idx: number) => {
-              const dataLimit =
-                job.unit === "size"
-                  ? formatBytes(job.limit)
-                  : formatDuration(job.limit);
-              return {
-                userName: job.userId.userName,
-                platform: job.platform,
-                attempt: job.attemptCount,
-                error: job.lastError.message,
-                jobId: job.jobId,
-                limit: dataLimit,
-                id: idx + 1,
-                retryable: job.retryable,
-              };
-            }) ?? [];
+          state.reports = jobs.length
+            ? jobs?.map((job: FailReportApi, idx: number) => {
+                const dataLimit =
+                  job.unit === "size"
+                    ? formatBytes(job.limit)
+                    : formatDuration(job.limit);
+                return {
+                  userName: job.userId.userName,
+                  platform: job.platform,
+                  attempt: job.attemptCount,
+                  error: job.lastError.message,
+                  jobId: job.jobId,
+                  limit: dataLimit,
+                  id: idx + 1,
+                  retryable: job.retryable,
+                };
+              })
+            : [];
         },
       )
       .addCase(errorReportList.rejected, (state, action) => {

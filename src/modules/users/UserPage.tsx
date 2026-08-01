@@ -25,7 +25,6 @@ import {
   setDeleteModel,
   setOpenModel,
   setOpenUserData,
-  setRefreshKey,
   setUserInfo,
   setUserUnitMap,
 } from "./slice";
@@ -44,17 +43,8 @@ const UserPage = () => {
 
   const { search } = useOutletContext<{ search: string }>();
 
-  const refresh = () => dispatch(setRefreshKey((v: number) => v + 1));
-
-  const {
-    user,
-    loading,
-    total,
-    fileModel,
-    isModelOpen,
-    userUnitMap,
-    refreshKey,
-  } = useSelector((state: RootState) => state.data);
+  const { user, loading, total, fileModel, isModelOpen, userUnitMap } =
+    useSelector((state: RootState) => state.data);
 
   useEffect(() => {
     dispatch(
@@ -63,7 +53,7 @@ const UserPage = () => {
         limit: pageSize,
       }),
     );
-  }, [dispatch, page, pageSize, refreshKey]);
+  }, [dispatch, page, pageSize]);
 
   const userList = useMemo(() => {
     const filteredData = user.filter((u) =>
@@ -216,7 +206,7 @@ const UserPage = () => {
       <DeleteModel
         userId={deleteUserId}
         setDeleteUserId={setDeleteUserId}
-        refresh={refresh}
+        pageSize={pageSize}
         setPage={setPage}
       />
     </>

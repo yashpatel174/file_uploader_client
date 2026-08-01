@@ -24,7 +24,6 @@ const initialState: IUserState = {
   dropdown: [],
   audio: [],
   total: 0,
-  refreshKey: 0,
   page: 1,
   limit: 10,
   totalPages: 1,
@@ -79,9 +78,6 @@ const UserSlice = createSlice({
     },
     setDeleteModel: (state, action) => {
       state.deleteModel = action.payload;
-    },
-    setRefreshKey: (state, action) => {
-      state.refreshKey = action.payload;
     },
     setUpdateLoading: (state, action) => {
       state.updateLoading = action.payload;
@@ -201,7 +197,6 @@ const UserSlice = createSlice({
         state.deleteLoading = false;
         state.error =
           action.payload ?? action.error.message ?? "Something went wrong";
-        state.user = [];
       })
       .addCase(multipleFilesUpload.pending, (state) => {
         state.fileUploadLoading = true;
@@ -416,8 +411,6 @@ export const multipleFilesUpload = createAsyncThunk<
   { rejectValue: string }
 >("multiple/files", async ({ payload, _id }) => {
   try {
-    console.log("_id: ", _id);
-    console.log("payload: ", payload);
     const res = await api.post(API_URL.MULTIPLE_FILE_UPLOAD(_id), payload);
     message.success(res.data.message);
     return res.data;
@@ -432,7 +425,6 @@ export const {
   setUserInfo,
   setOpenModel,
   setCloseModel,
-  setRefreshKey,
   setOpenUpload,
   setCloseUpload,
   setUserUnitMap,

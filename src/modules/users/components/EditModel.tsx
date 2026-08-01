@@ -143,9 +143,9 @@ const EditModel: React.FC<IUnitProps> = ({ unit = "KB" }) => {
         emailPayload,
       };
       await dispatch(updateUserInfo(finalData));
+      await dispatch(getAllUsers(paginationPayload));
 
       handleClose();
-      await dispatch(getAllUsers(paginationPayload));
     } catch (error) {
       message.error(
         error instanceof Error ? error.message : "Something went wrong",

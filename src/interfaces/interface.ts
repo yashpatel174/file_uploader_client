@@ -147,7 +147,6 @@ export interface IUserState {
   user: IUserInfo[];
   dropdown: IDropdown[];
   audio: IAudioInfo[];
-  refreshKey: number;
   total: number;
   page: number;
   limit: number;
