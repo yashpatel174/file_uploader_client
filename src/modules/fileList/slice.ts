@@ -22,6 +22,7 @@ const initialState: IFileState = {
   reports: [],
   fileLoading: false,
   reportLoading: false,
+  totalReport: 0,
   error: "",
   total: 0,
   page: 1,
@@ -53,6 +54,7 @@ const FileSlice = createSlice({
           state.fileLoading = false;
           const { data, pagination } = action.payload;
           const { limit, page, total, totalPages } = pagination;
+          console.log("pagination: ", pagination);
           state.total = total;
           state.page = page;
           state.totalPages = totalPages;
@@ -72,26 +74,27 @@ const FileSlice = createSlice({
       .addCase(
         errorReportList.fulfilled,
         (state, action: PayloadAction<any>) => {
-          const { jobs } = action.payload;
+          const payload = action.payload ?? {};
+          const jobs = Array.isArray(payload.jobs) ? payload.jobs : [];
+          const pagination = payload.pagination ?? {};
+          state.totalReport = pagination.total ?? 0;
           state.reportLoading = false;
-          state.reports = jobs.length
-            ? jobs?.map((job: FailReportApi, idx: number) => {
-                const dataLimit =
-                  job.unit === "size"
-                    ? formatBytes(job.limit)
-                    : formatDuration(job.limit);
-                return {
-                  userName: job.userId.userName,
-                  platform: job.platform,
-                  attempt: job.attemptCount,
-                  error: job.lastError.message,
-                  jobId: job.jobId,
-                  limit: dataLimit,
-                  id: idx + 1,
-                  retryable: job.retryable,
-                };
-              })
-            : [];
+          state.reports = jobs?.map((job: FailReportApi, idx: number) => {
+            const dataLimit =
+              job.unit === "size"
+                ? formatBytes(job.limit)
+                : formatDuration(job.limit);
+            return {
+              userName: job.userId.userName,
+              platform: job.platform,
+              attempt: job.attemptCount,
+              error: job.lastError.message,
+              jobId: job.jobId,
+              limit: dataLimit,
+              id: idx + 1,
+              retryable: job.retryable,
+            };
+          });
         },
       )
       .addCase(errorReportList.rejected, (state, action) => {
@@ -104,13 +107,13 @@ const FileSlice = createSlice({
 
 export const getAllFiles = createAsyncThunk<
   IFileResponse,
-  void,
+  { page: number; limit: number },
   { rejectValue: string }
->("list/files", async (_, { rejectWithValue }) => {
+>("list/files", async ({ page = 1, limit = 10 }, { rejectWithValue }) => {
   try {
     const {
       data: { result },
-    } = await api.get(API_URL.GET_FILES);
+    } = await api.get(API_URL.GET_FILES(page, limit));
     return result ?? [];
   } catch (error) {
     let errorMessage = "";
@@ -146,11 +149,11 @@ export const getAllAudio = createAsyncThunk<
 
 export const errorReportList = createAsyncThunk<
   AudioResponse,
-  void,
+  { page: number; limit: number },
   { rejectValue: string }
->("error/report", async (_, { rejectWithValue }) => {
+>("error/report", async ({ page = 1, limit = 10 }, { rejectWithValue }) => {
   try {
-    const res = await api.get(API_URL.FAIL_REPORT);
+    const res = await api.get(API_URL.FAIL_REPORT(page, limit));
     return res.data.result;
   } catch (error) {
     if (axios.isAxiosError(error)) {

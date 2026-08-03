@@ -126,9 +126,10 @@ const FileUpload = () => {
         ALLOWED_EXTENSIONS.includes(extension);
 
       if (!isValid) {
-        message.error(
-          `${file.name}: Only MP3, WAV, OGG and M4A files are allowed.`,
-        );
+        message.error({
+          content: "Only MP3, WAV, OGG and M4A files are allowed.",
+          key: "invalid-audio-file",
+        });
         return Upload.LIST_IGNORE;
       }
 

@@ -143,10 +143,6 @@ export const failReportColumns = (
 };
 
 export const fileSizeOptions = [
-  // {
-  //   label: "Bytes",
-  //   value: "bytes",
-  // },
   {
     label: "KB",
     value: "KB",

@@ -252,6 +252,7 @@ export interface EditFormValues {
   totalTime?: number;
   opearation: "+" | "-";
   consumed: string;
+  newUnit: SizeUnit;
 }
 
 export type APIPlatform = "sftp" | "ftp" | "dropbox" | "drive";
@@ -312,6 +313,7 @@ export interface FailReportTable {
 export interface IFileState {
   file: FileList[];
   fileLoading: boolean;
+  totalReport: number;
   error: string;
   total: number;
   page: number;

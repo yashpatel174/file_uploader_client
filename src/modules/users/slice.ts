@@ -246,7 +246,6 @@ export const getAllUsers = createAsyncThunk<
     return result ?? [];
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      // message.error(error.response?.data?.message);
       return rejectWithValue(
         error.response?.data?.message || "Failed to fetch users",
       );

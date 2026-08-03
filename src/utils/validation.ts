@@ -131,6 +131,10 @@ export const emailValidation = [
     message: "Spaces are not allowed",
   },
   {
+    pattern: /^[^A-Z]+$/,
+    message: "Capital letters are not allowed.",
+  },
+  {
     pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
     message: "Please enter a valid email address",
   },

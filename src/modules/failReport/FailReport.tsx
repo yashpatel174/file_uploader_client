@@ -26,13 +26,13 @@ const FailReport = () => {
   const [apiError, setApiError] = useState<string | null>(null);
   const [retry, setRetry] = useState<string | null>(null);
 
-  const { file, apiLoading, total, reports } = useSelector(
+  const { file, apiLoading, reports, totalReport } = useSelector(
     (state: RootState) => state.file,
   );
   const { user } = useSelector((state: RootState) => state.data);
 
   const handleErrorReport = () => {
-    dispatch(errorReportList()).finally(() => {
+    dispatch(errorReportList({ page, limit: pageSize })).finally(() => {
       dispatch(setApiLoading(false));
     });
   };
@@ -54,6 +54,8 @@ const FailReport = () => {
         "success" in res.payload
       ) {
         message.success(res.payload.message);
+        dispatch(setApiLoading(false));
+        setRetry(null);
         await navigate("/users");
       }
 
@@ -141,14 +143,14 @@ const FailReport = () => {
           responsive
           current={page}
           pageSize={pageSize}
-          total={total}
+          total={totalReport}
           showSizeChanger
           onChange={(newPage, newPageSize) => {
             const metaPage = JSON.stringify({
               page: newPage,
               limit: newPageSize,
             });
-            localStorage.setItem("page", metaPage);
+            localStorage.setItem("reportPage", metaPage);
             setPage(newPage);
             setPageSize(newPageSize);
           }}

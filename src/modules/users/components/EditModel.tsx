@@ -57,10 +57,7 @@ const EditModel: React.FC<IUnitProps> = ({ unit = "KB" }) => {
   const newSize: string = Form.useWatch("newSize", form);
   const newTime: string = Form.useWatch("newTime", form);
 
-  const { isModelOpen, userInfo } = useSelector(
-    (state: RootState) => state.data,
-  );
-  const { failReport, updateLoading } = useSelector(
+  const { failReport, updateLoading, isModelOpen, userInfo } = useSelector(
     (state: RootState) => state.data,
   );
 
@@ -89,13 +86,8 @@ const EditModel: React.FC<IUnitProps> = ({ unit = "KB" }) => {
   const handleSubmit = async (values: EditFormValues) => {
     try {
       dispatch(setUpdateLoading(true));
-      const fileData = failReport?.find(
-        (r) => r.userId === userInfo._id && r.unit === values.unit,
-      );
-      const isUnitMatched =
-        fileData !== undefined && fileData.unit === values.unit;
+      const fileData = failReport?.find((r) => r.unit === values.unit);
       const newData = buildPayload(values, userInfo);
-      let isReset: boolean = false;
       let isMail: boolean = values.opearation === "+" ? true : false;
 
       let emailPayload: IEmailPayload = {
@@ -104,44 +96,39 @@ const EditModel: React.FC<IUnitProps> = ({ unit = "KB" }) => {
         used: "",
         updated: "",
       };
+
       if (isMail) {
         const updatedUnit = values.unit;
         if (updatedUnit === "size") {
           const total = formatBytes(userInfo[updatedUnit].total);
           const used = formatBytes(userInfo[updatedUnit].consumed);
-          const updated = formatBytes(Number(values.newSize));
+          const byteConversion = toBytes(
+            Number(values.newSize),
+            values.newUnit,
+          );
+          const updated = formatBytes(byteConversion);
           emailPayload.total = total;
           emailPayload.used = used;
-          emailPayload.updated = updated;
+          emailPayload.updated = String(updated);
         } else if (updatedUnit === "time") {
           const total = formatDuration(userInfo[updatedUnit].total);
           const used = formatDuration(userInfo[updatedUnit].consumed);
-          const { totalSeconds } = parseDurationToSeconds(
-            Number(values.newTime),
-          );
+          const { totalSeconds } = parseDurationToSeconds(values.newTime);
           const updated = formatDuration(Number(totalSeconds));
           emailPayload.total = total;
           emailPayload.used = used;
           emailPayload.updated = updated;
         }
       }
-      if (fileData && values.opearation === "+") {
-        const { newAvailableValue } = newData;
-        if (isUnitMatched) {
-          if (newAvailableValue >= fileData.actualLimit) {
-            isReset = true;
-          } else {
-            isReset = false;
-          }
-        }
-      }
+
       const finalData = {
         ...newData,
-        isReset,
+        isReset: fileData && values.opearation === "+" ? true : false,
         isMail,
         jobId: fileData?.jobId ?? null,
         emailPayload,
       };
+
       await dispatch(updateUserInfo(finalData));
       await dispatch(getAllUsers(paginationPayload));
 

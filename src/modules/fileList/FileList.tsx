@@ -25,8 +25,8 @@ const FileList = () => {
   );
 
   useEffect(() => {
-    dispatch(getAllFiles());
-  }, [dispatch]);
+    dispatch(getAllFiles({ page, limit: pageSize }));
+  }, [dispatch, page, pageSize]);
 
   const userList = useMemo(() => {
     const filteredData = file.filter(
@@ -119,7 +119,7 @@ const FileList = () => {
               page: newPage,
               limit: newPageSize,
             });
-            localStorage.setItem("page", metaPage);
+            localStorage.setItem("file_list", metaPage);
             setPage(newPage);
             setPageSize(newPageSize);
           }}
